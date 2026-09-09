@@ -2,10 +2,14 @@ require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
 const crypto = require('crypto');
+const path = require('path');
 const { config, calcularConversion } = require('./calculator');
 
 const app = express();
 app.use(express.json());
+
+// Servir archivos estáticos de la carpeta "public"
+app.use(express.static('public'));
 
 const pool = new Pool({
   host: process.env.DB_HOST,
