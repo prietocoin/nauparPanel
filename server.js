@@ -1,4 +1,10 @@
+require('dotenv').config();
+const express = require('express');
 const { Pool } = require('pg');
+const { config, calcularConversion } = require('./calculator');
+
+const app = express();
+app.use(express.json());
 
 const pool = new Pool({
   host: process.env.DB_HOST,
@@ -36,5 +42,29 @@ const inicializarBD = async () => {
   }
 };
 
-// Se ejecuta al iniciar el servidor
 inicializarBD();
+
+// Endpoint para consultar monedas, reglas y factores de ganancia
+app.get('/api/config', (req, res) => {
+  res.json(config);
+});
+
+// Endpoint para simular/calcular la conversión
+app.post('/api/calcular', (req, res) => {
+  const { origen, destino, monto, tasaBase } = req.body;
+  if (!origen || !destino || !monto || !tasaBase) {
+    return res.status(400).json({ error: 'Parámetros requeridos: origen, destino, monto, tasaBase' });
+  }
+
+  try {
+    const resultado = calcularConversion(origen, destino, monto, tasaBase);
+    res.json(resultado);
+  } catch (error) {
+    res.status(500).json({ error: 'Error realizando el cálculo', detalle: error.message });
+  }
+});
+
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor ejecutándose en el puerto ${PORT}`);
+});
