@@ -3,20 +3,187 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NAUPAR Remesas - Panel de Control</title>
+  <title>NAUPAR Remesas - Operaciones</title>
   <style>
-    body { font-family: system-ui, sans-serif; background: #0f172a; color: #f8fafc; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-    .card { background: #1e293b; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); text-align: center; max-width: 400px; }
-    h1 { color: #38bdf8; margin-bottom: 0.5rem; }
-    p { color: #94a3b8; }
-    .status { display: inline-block; background: #10b981; color: #022c22; padding: 0.25rem 0.75rem; border-radius: 9999px; font-weight: bold; font-size: 0.875rem; margin-top: 1rem; }
+    :root { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --accent: #0284c7; --success: #10b981; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+    .container { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .card { background: var(--card); padding: 24px; border-radius: 12px; border: 1px solid #334155; }
+    .full-width { grid-column: 1 / -1; }
+    h2 { color: #38bdf8; margin-top: 0; font-size: 1.25rem; }
+    label { display: block; font-size: 0.85rem; color: #94a3b8; margin: 10px 0 4px; }
+    input, select { width: 100%; padding: 10px; background: #0f172a; border: 1px solid #475569; color: var(--text); border-radius: 6px; box-sizing: border-box; }
+    button { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 6px; font-weight: bold; margin-top: 15px; cursor: pointer; }
+    button:hover { opacity: 0.9; }
+    .result-box { background: #0f172a; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 4px solid var(--accent); }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #334155; }
+    th { color: #94a3b8; }
+    .badge { background: #065f46; color: #34d399; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>NAUPAR Remesas</h1>
-    <p>Sistema backend y API de cálculo activo.</p>
-    <div class="status">● Servidor En Línea</div>
+
+  <div class="container">
+    <!-- Cotizador -->
+    <div class="card">
+      <h2>🧮 Calculadora de Envíos</h2>
+      <label>Moneda Origen</label>
+      <select id="origen" onchange="calcular()"></select>
+
+      <label>Moneda Destino</label>
+      <select id="destino" onchange="calcular()"></select>
+
+      <label>Monto a Enviar</label>
+      <input type="number" id="monto" value="1000" oninput="calcular()">
+
+      <label>Tasa Base Mercado</label>
+      <input type="number" step="0.0001" id="tasaBase" value="3.75" oninput="calcular()">
+
+      <div class="result-box" id="resultado">
+        <small style="color: #94a3b8;">Monto a Recibir:</small>
+        <div style="font-size: 1.5rem; font-weight: bold; color: var(--success);" id="montoFinal">0.00</div>
+        <small id="detalleOperacion" style="color: #64748b;"></small>
+      </div>
+    </div>
+
+    <!-- Registro de Operación -->
+    <div class="card">
+      <h2>📝 Registrar Transacción</h2>
+      <form id="formRegistro" onsubmit="guardarRegistro(event)">
+        <label>Asesor</label>
+        <input type="text" id="nombre_asesor" value="Asesor Ventanilla" required>
+
+        <label>Titular / Beneficiario</label>
+        <input type="text" id="titular" placeholder="Nombre completo" required>
+
+        <label>Banco Destino</label>
+        <select id="banco"></select>
+
+        <label>Comprobante / Link</label>
+        <input type="text" id="hiperlink" placeholder="URL comprobante">
+
+        <button type="submit">Guardar Registro en BD</button>
+      </form>
+    </div>
+
+    <!-- Historial de Transacciones -->
+    <div class="card full-width">
+      <h2>📋 Últimas Operaciones Registradas</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>HASH</th>
+            <th>Fecha</th>
+            <th>Asesor</th>
+            <th>Titular</th>
+            <th>Monto</th>
+            <th>Moneda</th>
+            <th>Banco</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="tablaRegistros"></tbody>
+      </table>
+    </div>
   </div>
+
+  <script>
+    let configApp = {};
+
+    async function cargarConfig() {
+      const res = await fetch('/api/config');
+      configApp = await res.json();
+
+      const selectOrigen = document.getElementById('origen');
+      const selectDestino = document.getElementById('destino');
+      const selectBanco = document.getElementById('banco');
+
+      configApp.monedas_soportadas.forEach(m => {
+        selectOrigen.innerHTML += `<option value="${m.codigo}">${m.bandera} ${m.codigo} - ${m.nombre}</option>`;
+        selectDestino.innerHTML += `<option value="${m.codigo}">${m.bandera} ${m.codigo} - ${m.nombre}</option>`;
+      });
+
+      configApp.bancos_autorizados.forEach(b => {
+        selectBanco.innerHTML += `<option value="${b}">${b}</option>`;
+      });
+
+      selectOrigen.value = "PEN";
+      selectDestino.value = "USD";
+      calcular();
+      cargarHistorial();
+    }
+
+    async function calcular() {
+      const origen = document.getElementById('origen').value;
+      const destino = document.getElementById('destino').value;
+      const monto = document.getElementById('monto').value;
+      const tasaBase = document.getElementById('tasaBase').value;
+
+      if (!monto || !tasaBase) return;
+
+      const res = await fetch('/api/calcular', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ origen, destino, monto: Number(monto), tasaBase: Number(tasaBase) })
+      });
+
+      const data = await res.json();
+      const mDestino = configApp.monedas_soportadas.find(m => m.codigo === destino);
+      
+      document.getElementById('montoFinal').innerText = `${mDestino ? mDestino.simbolo : ''} ${data.montoFinal} ${destino}`;
+      document.getElementById('detalleOperacion').innerText = `Operación: ${data.operacion} | Factor aplicado: ${data.factorGanancia}`;
+    }
+
+    async function guardarRegistro(e) {
+      e.preventDefault();
+      const payload = {
+        nombre_asesor: document.getElementById('nombre_asesor').value,
+        titular: document.getElementById('titular').value,
+        banco: document.getElementById('banco').value,
+        hiperlink: document.getElementById('hiperlink').value,
+        monto: document.getElementById('monto').value,
+        moneda: document.getElementById('origen').value,
+        tasa: document.getElementById('tasaBase').value,
+        tipo_operacion: 'ENVIO'
+      };
+
+      const res = await fetch('/api/registros', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        document.getElementById('titular').value = '';
+        document.getElementById('hiperlink').value = '';
+        cargarHistorial();
+      }
+    }
+
+    async function cargarHistorial() {
+      const res = await fetch('/api/registros');
+      const data = await res.json();
+      const tbody = document.getElementById('tablaRegistros');
+      tbody.innerHTML = '';
+
+      data.forEach(r => {
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>#${r.hash_corto}</strong></td>
+            <td>${new Date(r.fecha_hora).toLocaleDateString()}</td>
+            <td>${r.nombre_asesor}</td>
+            <td>${r.titular}</td>
+            <td>${r.monto}</td>
+            <td>${r.moneda}</td>
+            <td>${r.banco}</td>
+            <td><span class="badge">${r.estado_proceso}</span></td>
+          </tr>
+        `;
+      });
+    }
+
+    cargarConfig();
+  </script>
 </body>
 </html>
