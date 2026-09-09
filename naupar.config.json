@@ -6,17 +6,17 @@
     "permitir_usdt": true
   },
   "monedas_soportadas": [
-  { "codigo": "USD", "nombre": "Dólar Estadounidense", "simbolo": "$", "bandera": "🇺🇸" },
-  { "codigo": "VES", "nombre": "Bolívar Venezolano", "simbolo": "Bs.", "bandera": "🇻🇪" },
-  { "codigo": "PEN", "nombre": "Sol Peruano", "simbolo": "S/", "bandera": "🇵🇪" },
-  { "codigo": "COP", "nombre": "Peso Colombiano", "simbolo": "$", "bandera": "🇨🇴" },
-  { "codigo": "CLP", "nombre": "Peso Chileno", "simbolo": "$", "bandera": "🇨🇱" },
-  { "codigo": "MXN", "nombre": "Peso Mexicano", "simbolo": "$", "bandera": "🇲🇽" },
-  { "codigo": "EUR", "nombre": "Euro", "simbolo": "€", "bandera": "🇪🇺" },
-  { "codigo": "USDT", "nombre": "Tether Stablecoin", "simbolo": "USDT", "bandera": "🪙" },
-  { "codigo": "PYG", "nombre": "Guaraní Paraguayo", "simbolo": "Gs.", "bandera": "🇵🇾" },
-  { "codigo": "ARS", "nombre": "Peso Argentino", "simbolo": "$", "bandera": "🇦🇷" }
-],
+    { "codigo": "USD", "nombre": "Dólar Estadounidense", "simbolo": "$", "bandera": "🇺🇸" },
+    { "codigo": "VES", "nombre": "Bolívar Venezolano", "simbolo": "Bs.", "bandera": "🇻🇪" },
+    { "codigo": "PEN", "nombre": "Sol Peruano", "simbolo": "S/", "bandera": "🇵🇪" },
+    { "codigo": "COP", "nombre": "Peso Colombiano", "simbolo": "$", "bandera": "🇨🇴" },
+    { "codigo": "CLP", "nombre": "Peso Chileno", "simbolo": "$", "bandera": "🇨🇱" },
+    { "codigo": "MXN", "nombre": "Peso Mexicano", "simbolo": "$", "bandera": "🇲🇽" },
+    { "codigo": "EUR", "nombre": "Euro", "simbolo": "€", "bandera": "🇪🇺" },
+    { "codigo": "USDT", "nombre": "Tether Stablecoin", "simbolo": "USDT", "bandera": "🪙" },
+    { "codigo": "PYG", "nombre": "Guaraní Paraguayo", "simbolo": "Gs.", "bandera": "🇵🇾" },
+    { "codigo": "ARS", "nombre": "Peso Argentino", "simbolo": "$", "bandera": "🇦🇷" }
+  ],
   "reglas_operacion_pais": {
     "COP": { "operacion_defecto": "DIVISION", "excepciones": [] },
     "PYG": { "operacion_defecto": "DIVISION", "excepciones": [] },
@@ -35,6 +35,20 @@
     "EUR": { "operacion_defecto": "MULTIPLICACION", "excepciones": [] },
     "USDT": { "operacion_defecto": "MULTIPLICACION", "excepciones": [] }
   },
+  "comisiones": {
+    "tipo": "PORCENTAJE_O_FIJO",
+    "porcentaje_estandar": 0.02,
+    "monto_minimo_fijo": 1.50
+  },
+  "bancos_autorizados": [
+    "Banesco",
+    "Mercantil",
+    "BCP Peru",
+    "Bancolombia",
+    "Banco de Chile",
+    "BBVA Mexico",
+    "Binance USDT"
+  ],
   "factores_ganancia": {
     "VES": { "PEN": 0.930, "COP": 0.870, "CLP": 0.870, "MXN": 0.920, "USD": 0.870, "EUR": 0.900, "ARS": 0.930, "PYG": 0.930, "USDT": 0.950 },
     "PEN": { "VES": 0.940, "COP": 0.930, "CLP": 0.930, "MXN": 0.920, "USD": 0.900, "EUR": 0.900, "ARS": 0.930, "PYG": 0.930, "USDT": 0.950 },
