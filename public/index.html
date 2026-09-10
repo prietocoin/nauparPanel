@@ -192,7 +192,38 @@
           </div>
         </div>
       </div>
+<!-- Sidebar Lateral con Logo PNG Adaptado -->
+<aside class="w-64 bg-[#111322] border-r border-[#262a42] p-4 flex flex-col justify-between shrink-0 hidden md:flex">
+  <div>
+    <!-- Tarjeta Contenedora para resaltar PNG con texto negro -->
+    <div class="px-3 py-2.5 mb-6 border border-[#262a42] bg-slate-100/95 rounded-xl shadow-lg flex items-center justify-center">
+      <img src="/logo.png" alt="Inversiones NAUPAR" class="w-full max-h-14 object-contain">
+    </div>
 
+    <nav class="space-y-1.5 text-xs font-semibold">
+      <p class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Conciliación Binomial</p>
+      
+      <button @click="cambiarTabla('vista_pares')" :class="tablaActiva === 'vista_pares' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
+        <span>⇄ Vista Pares ($2\text{X-ia}$)</span>
+      </button>
+
+      <button @click="cambiarTabla('registros')" :class="tablaActiva === 'registros' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
+        <span>📋 Visor de Remesas</span>
+      </button>
+
+      <div class="py-2"><hr class="border-[#262a42]"></div>
+      <p class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Revisión de Bases</p>
+
+      <button @click="cambiarTabla('cola_recepcion')" :class="tablaActiva === 'cola_recepcion' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
+        <span>📥 Cola Recepción</span>
+      </button>
+    </nav>
+  </div>
+
+  <div class="p-2 border-t border-[#262a42] text-[10px] text-slate-500 font-mono text-center">
+    <span>NAUPAR Engine v1.0 • Express + Zod</span>
+  </div>
+</aside>
     </main>
   </div>
 
