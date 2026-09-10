@@ -1,189 +1,234 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NAUPAR Remesas - Operaciones</title>
-  <style>
-    :root { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --accent: #0284c7; --success: #10b981; }
-    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-    .container { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    .card { background: var(--card); padding: 24px; border-radius: 12px; border: 1px solid #334155; }
-    .full-width { grid-column: 1 / -1; }
-    h2 { color: #38bdf8; margin-top: 0; font-size: 1.25rem; }
-    label { display: block; font-size: 0.85rem; color: #94a3b8; margin: 10px 0 4px; }
-    input, select { width: 100%; padding: 10px; background: #0f172a; border: 1px solid #475569; color: var(--text); border-radius: 6px; box-sizing: border-box; }
-    button { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 6px; font-weight: bold; margin-top: 15px; cursor: pointer; }
-    button:hover { opacity: 0.9; }
-    .result-box { background: #0f172a; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 4px solid var(--accent); }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
-    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #334155; }
-    th { color: #94a3b8; }
-    .badge { background: #065f46; color: #34d399; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-  </style>
+  <title>NAUPAR Remesas - Visor de Auditoría $2\text{X-ia}$</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>[x-cloak] { display: none !important; }</style>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { dark: '#0b0d19', card: '#111322', border: '#262a42', accent: '#38bdf8' }
+          }
+        }
+      }
+    }
+  </script>
 </head>
-<body>
+<body class="bg-brand-dark text-slate-200 font-sans antialiased min-h-screen flex" x-data="dashboardApp()" x-init="init()">
 
-  <div class="container">
-    <!-- Cotizador -->
-    <div class="card">
-      <h2>🧮 Calculadora de Envíos</h2>
-      <label>Moneda Origen</label>
-      <select id="origen" onchange="calcular()"></select>
-
-      <label>Moneda Destino</label>
-      <select id="destino" onchange="calcular()"></select>
-
-      <label>Monto a Enviar</label>
-      <input type="number" id="monto" value="1000" oninput="calcular()">
-
-      <label>Tasa Base Mercado</label>
-      <input type="number" step="0.0001" id="tasaBase" value="3.75" oninput="calcular()">
-
-      <div class="result-box" id="resultado">
-        <small style="color: #94a3b8;">Monto a Recibir:</small>
-        <div style="font-size: 1.5rem; font-weight: bold; color: var(--success);" id="montoFinal">0.00</div>
-        <small id="detalleOperacion" style="color: #64748b;"></small>
+  <!-- Sidebar Lateral Atenea Style -->
+  <aside class="w-64 bg-[#111322] border-r border-[#262a42] p-4 flex flex-col justify-between shrink-0 hidden md:flex">
+    <div>
+      <div class="flex items-center gap-3 px-2 py-3 mb-6 border-b border-[#262a42]">
+        <div class="w-10 h-10 rounded-xl border border-sky-500/40 bg-[#16192b] p-2 flex items-center justify-center shadow-lg shrink-0">
+          <span class="text-sky-400 font-black text-xl">N</span>
+        </div>
+        <div>
+          <h2 class="font-bold text-sm text-white tracking-wide">NAUPAR</h2>
+          <p class="text-[9px] text-sky-400 uppercase font-mono tracking-widest">Auditoría $2\text{X-ia}$</p>
+        </div>
       </div>
+
+      <nav class="space-y-1.5 text-xs font-semibold">
+        <p class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Conciliación</p>
+        
+        <button @click="cambiarTabla('vista_pares')" :class="tablaActiva === 'vista_pares' ? 'bg-sky-600/20 text-sky-400 border border-sky-500/30' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
+          <span>⇄ Vista Pares ($2\text{X-ia}$)</span>
+        </button>
+
+        <button @click="cambiarTabla('registros')" :class="tablaActiva === 'registros' ? 'bg-sky-600/20 text-sky-400 border border-sky-500/30' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
+          <span>📋 Visor de Remesas</span>
+        </button>
+
+        <div class="py-2"><hr class="border-[#262a42]"></div>
+        <p class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Bases de Datos</p>
+
+        <button @click="cambiarTabla('cola_recepcion')" :class="tablaActiva === 'cola_recepcion' ? 'bg-sky-600/20 text-sky-400 border border-sky-500/30' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
+          <span>📥 Cola Recepción</span>
+        </button>
+      </nav>
     </div>
 
-    <!-- Registro de Operación -->
-    <div class="card">
-      <h2>📝 Registrar Transacción</h2>
-      <form id="formRegistro" onsubmit="guardarRegistro(event)">
-        <label>Asesor</label>
-        <input type="text" id="nombre_asesor" value="Asesor Ventanilla" required>
-
-        <label>Titular / Beneficiario</label>
-        <input type="text" id="titular" placeholder="Nombre completo" required>
-
-        <label>Banco Destino</label>
-        <select id="banco"></select>
-
-        <label>Comprobante / Link</label>
-        <input type="text" id="hiperlink" placeholder="URL comprobante">
-
-        <button type="submit">Guardar Registro en BD</button>
-      </form>
+    <div class="p-2 border-t border-[#262a42] text-[10px] text-slate-500 font-mono">
+      <span>Motor: Node.js Modular</span>
     </div>
+  </aside>
 
-    <!-- Historial de Transacciones -->
-    <div class="card full-width">
-      <h2>📋 Últimas Operaciones Registradas</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>HASH</th>
-            <th>Fecha</th>
-            <th>Asesor</th>
-            <th>Titular</th>
-            <th>Monto</th>
-            <th>Moneda</th>
-            <th>Banco</th>
-            <th>Estado</th>
-          </tr>
-        </thead>
-        <tbody id="tablaRegistros"></tbody>
-      </table>
-    </div>
+  <!-- Contenido Principal -->
+  <div class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+    
+    <!-- Header -->
+    <header class="bg-[#111322] border-b border-[#262a42] p-4 flex justify-between items-center">
+      <div>
+        <h1 class="text-lg font-bold text-white capitalize" x-text="tablaActiva === 'vista_pares' ? 'Conciliación de Pares ($2X-ia)' : tablaActiva.replace('_', ' ')"></h1>
+        <p class="text-xs text-slate-400">Monitoreo activo de transacciones ingresadas vía WhatsApp</p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <span class="text-xs font-mono bg-sky-950 text-sky-400 border border-sky-800 px-3 py-1 rounded-full font-bold" x-text="tablaActiva === 'vista_pares' ? datosPares.length + ' Pares Conciliados' : remesas.length + ' Regs'"></span>
+        <button @click="init()" class="bg-sky-600 hover:bg-sky-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow">
+          🔄 Sincronizar
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Body -->
+    <main class="p-4 space-y-4 flex-1">
+
+      <!-- VISTA: VISTA PARES (CONCILIACIÓN $2X-IA) -->
+      <div x-show="tablaActiva === 'vista_pares'" class="space-y-4">
+        <div class="bg-[#111322] border border-[#262a42] rounded-xl overflow-hidden shadow-xl">
+          <div class="p-3 border-b border-[#262a42] bg-[#16192b] flex justify-between items-center">
+            <span class="text-xs font-bold text-sky-400 uppercase tracking-wider">Desglose Binomial $2\text{X-ia}$ (Depósito + Transferencia)</span>
+            <span class="text-[10px] text-slate-500">Auto-sincronizado con PostgreSQL</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs whitespace-nowrap">
+              <thead class="bg-[#0b0d19] text-slate-400 uppercase tracking-wider font-semibold">
+                <tr>
+                  <th class="p-3">Par ID</th>
+                  <th class="p-3">Hashes</th>
+                  <th class="p-3">Asesor</th>
+                  <th class="p-3">Titular Envía</th>
+                  <th class="p-3">Titular Recibe</th>
+                  <th class="p-3">Par Divisas</th>
+                  <th class="p-3 bg-emerald-950/40 text-emerald-300">Monto Depositado</th>
+                  <th class="p-3 bg-slate-900">Comisión (3%)</th>
+                  <th class="p-3 bg-sky-950/40 text-sky-300">Monto Neto</th>
+                  <th class="p-3 bg-rose-950/40 text-rose-300">Monto Transferencia</th>
+                  <th class="p-3">Tasa / Factor</th>
+                  <th class="p-3">Margen Error</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#262a42] font-medium text-slate-300">
+                <template x-for="par in datosPares" :key="par.id || par.remesa_id">
+                  <tr class="hover:bg-[#16192b] transition-colors">
+                    <td class="p-3 font-mono text-sky-400 font-bold" x-text="par.remesa_id || par.id_a_id_b"></td>
+                    <td class="p-3 font-mono text-slate-400" x-text="par.remesa_hash || par.hash_a_hash_b"></td>
+                    <td class="p-3 font-semibold text-white" x-text="par.remesa_asesor || par.asesor"></td>
+                    <td class="p-3 text-emerald-400 bg-emerald-950/20" x-text="par.remesa_titular_envia || par.titular_envia || 'N/A'"></td>
+                    <td class="p-3 text-rose-400 bg-rose-950/20" x-text="par.remesa_titular_recibe || par.titular_recibe || 'N/A'"></td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded bg-sky-950 border border-sky-800 text-sky-300 font-bold" x-text="par.remesa_monedas || par.remesa"></span></td>
+                    
+                    <td class="p-3 font-bold text-emerald-400 bg-emerald-950/10" x-text="Number(par.remesa_deposito || par.deposito || 0).toFixed(2)"></td>
+                    <td class="p-3 text-amber-400" x-text="Number(par.remesa_comision || (par.remesa_deposito ? par.remesa_deposito * 0.03 : 0)).toFixed(2)"></td>
+                    <td class="p-3 font-bold text-sky-300 bg-sky-950/10" x-text="Number(par.remesa_monto_neto || (par.remesa_deposito ? par.remesa_deposito * 0.97 : 0)).toFixed(2)"></td>
+                    <td class="p-3 font-bold text-rose-400 bg-rose-950/10" x-text="Number(par.remesa_transferencia || par.transferencia || 0).toFixed(2)"></td>
+                    
+                    <td class="p-3 font-mono">
+                      <span class="text-white font-bold" x-text="par.remesa_tasa_numero || par.tasa_numero"></span>
+                      <span class="text-slate-500">@</span>
+                      <span class="text-sky-400" x-text="par.remesa_tasa_factor || par.tasa_factor"></span>
+                    </td>
+                    <td class="p-3">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold" :class="Number(par.remesa_error_margen || par.error_margen || 0) === 0 ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-amber-950 text-amber-300 border border-amber-800'" x-text="(Number(par.remesa_error_margen || par.error_margen || 0) * 100).toFixed(2) + '%'"></span>
+                    </td>
+                  </tr>
+                </template>
+                <tr x-show="datosPares.length === 0">
+                  <td colspan="12" class="p-8 text-center text-slate-500 italic">No hay remesas concilidadas en vista_pares.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISTA: REGISTROS INDIVIDUALES (A/B) -->
+      <div x-show="tablaActiva === 'registros'" class="space-y-4">
+        <div class="bg-[#111322] border border-[#262a42] rounded-xl overflow-hidden shadow-xl">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="bg-[#0b0d19] text-slate-400 uppercase tracking-wider font-semibold">
+                <tr>
+                  <th class="p-3">HASH</th>
+                  <th class="p-3">Fecha / Hora</th>
+                  <th class="p-3">Asesor</th>
+                  <th class="p-3">Tipo</th>
+                  <th class="p-3">Titular</th>
+                  <th class="p-3">Monto</th>
+                  <th class="p-3">Moneda</th>
+                  <th class="p-3">Banco</th>
+                  <th class="p-3">Comprobante</th>
+                  <th class="p-3">Estado</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#262a42] font-medium text-slate-300">
+                <template x-for="r in remesas" :key="r.id">
+                  <tr class="hover:bg-[#16192b] transition-colors">
+                    <td class="p-3 font-mono text-sky-400 font-bold" x-text="'#' + r.hash_corto"></td>
+                    <td class="p-3 text-slate-400 font-mono" x-text="new Date(r.fecha_hora || r.created_at).toLocaleString()"></td>
+                    <td class="p-3 font-semibold text-white" x-text="r.nombre_asesor"></td>
+                    <td class="p-3">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase" :class="String(r.tipo_operacion).toLowerCase().includes('ingreso') || String(r.tipo_operacion).toLowerCase().includes('deposito') ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-rose-950 text-rose-300 border border-rose-800'" x-text="r.tipo_operacion || 'ENVIO'"></span>
+                    </td>
+                    <td class="p-3" x-text="r.titular || 'N/A'"></td>
+                    <td class="p-3 font-bold text-white" x-text="Number(r.monto).toFixed(2)"></td>
+                    <td class="p-3 font-bold" x-text="r.moneda"></td>
+                    <td class="p-3 text-slate-400" x-text="r.banco || 'N/A'"></td>
+                    <td class="p-3">
+                      <template x-if="r.hiperlink">
+                        <a :href="r.hiperlink" target="_blank" class="text-sky-400 hover:underline font-mono">Ver R2 ↗</a>
+                      </template>
+                      <template x-if="!r.hiperlink">
+                        <span class="text-slate-600 italic">Sin adjunto</span>
+                      </template>
+                    </td>
+                    <td class="p-3">
+                      <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800" x-text="r.estado_proceso || 'PENDIENTE'"></span>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
   </div>
 
   <script>
-    let configApp = {};
-
-    async function cargarConfig() {
-      const res = await fetch('/api/config');
-      configApp = await res.json();
-
-      const selectOrigen = document.getElementById('origen');
-      const selectDestino = document.getElementById('destino');
-      const selectBanco = document.getElementById('banco');
-
-      configApp.monedas_soportadas.forEach(m => {
-        selectOrigen.innerHTML += `<option value="${m.codigo}">${m.bandera} ${m.codigo} - ${m.nombre}</option>`;
-        selectDestino.innerHTML += `<option value="${m.codigo}">${m.bandera} ${m.codigo} - ${m.nombre}</option>`;
-      });
-
-      configApp.bancos_autorizados.forEach(b => {
-        selectBanco.innerHTML += `<option value="${b}">${b}</option>`;
-      });
-
-      selectOrigen.value = "PEN";
-      selectDestino.value = "USD";
-      calcular();
-      cargarHistorial();
-    }
-
-    async function calcular() {
-      const origen = document.getElementById('origen').value;
-      const destino = document.getElementById('destino').value;
-      const monto = document.getElementById('monto').value;
-      const tasaBase = document.getElementById('tasaBase').value;
-
-      if (!monto || !tasaBase) return;
-
-      const res = await fetch('/api/calcular', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ origen, destino, monto: Number(monto), tasaBase: Number(tasaBase) })
-      });
-
-      const data = await res.json();
-      const mDestino = configApp.monedas_soportadas.find(m => m.codigo === destino);
-      
-      document.getElementById('montoFinal').innerText = `${mDestino ? mDestino.simbolo : ''} ${data.montoFinal} ${destino}`;
-      document.getElementById('detalleOperacion').innerText = `Operación: ${data.operacion} | Factor aplicado: ${data.factorGanancia}`;
-    }
-
-    async function guardarRegistro(e) {
-      e.preventDefault();
-      const payload = {
-        nombre_asesor: document.getElementById('nombre_asesor').value,
-        titular: document.getElementById('titular').value,
-        banco: document.getElementById('banco').value,
-        hiperlink: document.getElementById('hiperlink').value,
-        monto: document.getElementById('monto').value,
-        moneda: document.getElementById('origen').value,
-        tasa: document.getElementById('tasaBase').value,
-        tipo_operacion: 'ENVIO'
-      };
-
-      const res = await fetch('/api/registros', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (res.ok) {
-        document.getElementById('titular').value = '';
-        document.getElementById('hiperlink').value = '';
-        cargarHistorial();
+    function dashboardApp() {
+      return {
+        tablaActiva: 'vista_pares',
+        datosPares: [],
+        remesas: [],
+        async init() {
+          await this.cargarTablaPares();
+          await this.cargarRemesas();
+        },
+        async cambiarTabla(nombre) {
+          this.tablaActiva = nombre;
+          if (nombre === 'vista_pares') await this.cargarTablaPares();
+          if (nombre === 'registros') await this.cargarRemesas();
+        },
+        async cargarTablaPares() {
+          try {
+            const res = await fetch('/api/tabla/vista_pares');
+            if (res.ok) this.datosPares = await res.json();
+          } catch (e) {
+            console.error('Error al cargar vista_pares:', e);
+          }
+        },
+        async cargarRemesas() {
+          try {
+            const res = await fetch('/api/remesas');
+            if (res.ok) this.remesas = await res.json();
+          } catch (e) {
+            console.error('Error al cargar remesas:', e);
+          }
+        }
       }
     }
-
-    async function cargarHistorial() {
-      const res = await fetch('/api/registros');
-      const data = await res.json();
-      const tbody = document.getElementById('tablaRegistros');
-      tbody.innerHTML = '';
-
-      data.forEach(r => {
-        tbody.innerHTML += `
-          <tr>
-            <td><strong>#${r.hash_corto}</strong></td>
-            <td>${new Date(r.fecha_hora).toLocaleDateString()}</td>
-            <td>${r.nombre_asesor}</td>
-            <td>${r.titular}</td>
-            <td>${r.monto}</td>
-            <td>${r.moneda}</td>
-            <td>${r.banco}</td>
-            <td><span class="badge">${r.estado_proceso}</span></td>
-          </tr>
-        `;
-      });
-    }
-
-    cargarConfig();
   </script>
 </body>
 </html>
