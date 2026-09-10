@@ -69,7 +69,7 @@
           <img src="/logo.png" alt="NAUPAR" class="h-7 object-contain">
         </div>
         <div>
-          <h1 class="text-lg font-bold text-white capitalize" x-text="tablaActiva === 'vista_pares' ? 'Conciliación de Pares ($2X-ia)' : tablaActiva.replace('_', ' ')"></h1>
+          <h1 class="text-lg font-bold text-white capitalize" x-text="tablaActiva === 'vista_pares' ? 'Conciliación de Pares' : tablaActiva.replace('_', ' ')"></h1>
           <p class="text-xs text-slate-400">Auditoría pasiva en tiempo real para WhatsApp</p>
         </div>
       </div>
@@ -89,7 +89,7 @@
       <div x-show="tablaActiva === 'vista_pares'" class="space-y-4">
         <div class="bg-[#111322] border border-[#262a42] rounded-xl overflow-hidden shadow-xl">
           <div class="p-3 border-b border-[#262a42] bg-[#16192b] flex justify-between items-center">
-            <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Desglose Binomial $2\text{X-ia}$ (Depósito + Transferencia)</span>
+            <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Desglose Binomial  (Depósito + Transferencia)</span>
             <span class="text-[10px] text-slate-500">Auto-sincronizado con PostgreSQL</span>
           </div>
 
