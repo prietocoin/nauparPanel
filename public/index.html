@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NAUPAR Remesas - Visor de Auditoría $2\text{X-ia}$</title>
+  <title>Inversiones NAUPAR - Visor de Auditoría $2\text{X-ia}$</title>
   
+  <link rel="icon" type="image/png" href="/logo.png">
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>[x-cloak] { display: none !important; }</style>
@@ -14,7 +15,7 @@
       theme: {
         extend: {
           colors: {
-            brand: { dark: '#0b0d19', card: '#111322', border: '#262a42', accent: '#38bdf8' }
+            brand: { dark: '#0b0d19', card: '#111322', border: '#262a42', gold: '#d4af37' }
           }
         }
       }
@@ -23,41 +24,36 @@
 </head>
 <body class="bg-brand-dark text-slate-200 font-sans antialiased min-h-screen flex" x-data="dashboardApp()" x-init="init()">
 
-  <!-- Sidebar Lateral Atenea Style -->
+  <!-- Sidebar Lateral Atenea Style con Logo PNG -->
   <aside class="w-64 bg-[#111322] border-r border-[#262a42] p-4 flex flex-col justify-between shrink-0 hidden md:flex">
     <div>
-      <div class="flex items-center gap-3 px-2 py-3 mb-6 border-b border-[#262a42]">
-        <div class="w-10 h-10 rounded-xl border border-sky-500/40 bg-[#16192b] p-2 flex items-center justify-center shadow-lg shrink-0">
-          <span class="text-sky-400 font-black text-xl">N</span>
-        </div>
-        <div>
-          <h2 class="font-bold text-sm text-white tracking-wide">NAUPAR</h2>
-          <p class="text-[9px] text-sky-400 uppercase font-mono tracking-widest">Auditoría $2\text{X-ia}$</p>
-        </div>
+      <!-- Tarjeta Contenedora para resaltar el PNG -->
+      <div class="px-3 py-2.5 mb-6 border border-[#262a42] bg-slate-100/95 rounded-xl shadow-lg flex items-center justify-center">
+        <img src="/logo.png" alt="Inversiones NAUPAR" class="w-full max-h-14 object-contain">
       </div>
 
       <nav class="space-y-1.5 text-xs font-semibold">
-        <p class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Conciliación</p>
+        <p class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Conciliación Binomial</p>
         
-        <button @click="cambiarTabla('vista_pares')" :class="tablaActiva === 'vista_pares' ? 'bg-sky-600/20 text-sky-400 border border-sky-500/30' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
+        <button @click="cambiarTabla('vista_pares')" :class="tablaActiva === 'vista_pares' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
           <span>⇄ Vista Pares ($2\text{X-ia}$)</span>
         </button>
 
-        <button @click="cambiarTabla('registros')" :class="tablaActiva === 'registros' ? 'bg-sky-600/20 text-sky-400 border border-sky-500/30' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
+        <button @click="cambiarTabla('registros')" :class="tablaActiva === 'registros' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
           <span>📋 Visor de Remesas</span>
         </button>
 
         <div class="py-2"><hr class="border-[#262a42]"></div>
-        <p class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Bases de Datos</p>
+        <p class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Revisión de Bases</p>
 
-        <button @click="cambiarTabla('cola_recepcion')" :class="tablaActiva === 'cola_recepcion' ? 'bg-sky-600/20 text-sky-400 border border-sky-500/30' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
+        <button @click="cambiarTabla('cola_recepcion')" :class="tablaActiva === 'cola_recepcion' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
           <span>📥 Cola Recepción</span>
         </button>
       </nav>
     </div>
 
-    <div class="p-2 border-t border-[#262a42] text-[10px] text-slate-500 font-mono">
-      <span>Motor: Node.js Modular</span>
+    <div class="p-2 border-t border-[#262a42] text-[10px] text-slate-500 font-mono text-center">
+      <span>NAUPAR Engine v1.0 • Express + Zod</span>
     </div>
   </aside>
 
@@ -66,14 +62,19 @@
     
     <!-- Header -->
     <header class="bg-[#111322] border-b border-[#262a42] p-4 flex justify-between items-center">
-      <div>
-        <h1 class="text-lg font-bold text-white capitalize" x-text="tablaActiva === 'vista_pares' ? 'Conciliación de Pares ($2X-ia)' : tablaActiva.replace('_', ' ')"></h1>
-        <p class="text-xs text-slate-400">Monitoreo activo de transacciones ingresadas vía WhatsApp</p>
+      <div class="flex items-center gap-3">
+        <div class="bg-slate-100/95 p-1 rounded-lg md:hidden">
+          <img src="/logo.png" alt="NAUPAR" class="h-7 object-contain">
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-white capitalize" x-text="tablaActiva === 'vista_pares' ? 'Conciliación de Pares ($2X-ia)' : tablaActiva.replace('_', ' ')"></h1>
+          <p class="text-xs text-slate-400">Auditoría pasiva en tiempo real para WhatsApp</p>
+        </div>
       </div>
 
       <div class="flex items-center gap-3">
-        <span class="text-xs font-mono bg-sky-950 text-sky-400 border border-sky-800 px-3 py-1 rounded-full font-bold" x-text="tablaActiva === 'vista_pares' ? datosPares.length + ' Pares Conciliados' : remesas.length + ' Regs'"></span>
-        <button @click="init()" class="bg-sky-600 hover:bg-sky-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow">
+        <span class="text-xs font-mono bg-amber-950/60 text-amber-400 border border-amber-800/60 px-3 py-1 rounded-full font-bold" x-text="tablaActiva === 'vista_pares' ? datosPares.length + ' Pares Conciliados' : remesas.length + ' Regs'"></span>
+        <button @click="init()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow">
           🔄 Sincronizar
         </button>
       </div>
@@ -82,11 +83,11 @@
     <!-- Main Body -->
     <main class="p-4 space-y-4 flex-1">
 
-      <!-- VISTA: VISTA PARES (CONCILIACIÓN $2X-IA) -->
+      <!-- VISTA PARES ($2X-IA) -->
       <div x-show="tablaActiva === 'vista_pares'" class="space-y-4">
         <div class="bg-[#111322] border border-[#262a42] rounded-xl overflow-hidden shadow-xl">
           <div class="p-3 border-b border-[#262a42] bg-[#16192b] flex justify-between items-center">
-            <span class="text-xs font-bold text-sky-400 uppercase tracking-wider">Desglose Binomial $2\text{X-ia}$ (Depósito + Transferencia)</span>
+            <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Desglose Binomial $2\text{X-ia}$ (Depósito + Transferencia)</span>
             <span class="text-[10px] text-slate-500">Auto-sincronizado con PostgreSQL</span>
           </div>
 
@@ -111,12 +112,12 @@
               <tbody class="divide-y divide-[#262a42] font-medium text-slate-300">
                 <template x-for="par in datosPares" :key="par.id || par.remesa_id">
                   <tr class="hover:bg-[#16192b] transition-colors">
-                    <td class="p-3 font-mono text-sky-400 font-bold" x-text="par.remesa_id || par.id_a_id_b"></td>
+                    <td class="p-3 font-mono text-amber-400 font-bold" x-text="par.remesa_id || par.id_a_id_b"></td>
                     <td class="p-3 font-mono text-slate-400" x-text="par.remesa_hash || par.hash_a_hash_b"></td>
                     <td class="p-3 font-semibold text-white" x-text="par.remesa_asesor || par.asesor"></td>
                     <td class="p-3 text-emerald-400 bg-emerald-950/20" x-text="par.remesa_titular_envia || par.titular_envia || 'N/A'"></td>
                     <td class="p-3 text-rose-400 bg-rose-950/20" x-text="par.remesa_titular_recibe || par.titular_recibe || 'N/A'"></td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded bg-sky-950 border border-sky-800 text-sky-300 font-bold" x-text="par.remesa_monedas || par.remesa"></span></td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded bg-amber-950/50 border border-amber-800/60 text-amber-300 font-bold" x-text="par.remesa_monedas || par.remesa"></span></td>
                     
                     <td class="p-3 font-bold text-emerald-400 bg-emerald-950/10" x-text="Number(par.remesa_deposito || par.deposito || 0).toFixed(2)"></td>
                     <td class="p-3 text-amber-400" x-text="Number(par.remesa_comision || (par.remesa_deposito ? par.remesa_deposito * 0.03 : 0)).toFixed(2)"></td>
@@ -126,7 +127,7 @@
                     <td class="p-3 font-mono">
                       <span class="text-white font-bold" x-text="par.remesa_tasa_numero || par.tasa_numero"></span>
                       <span class="text-slate-500">@</span>
-                      <span class="text-sky-400" x-text="par.remesa_tasa_factor || par.tasa_factor"></span>
+                      <span class="text-amber-400" x-text="par.remesa_tasa_factor || par.tasa_factor"></span>
                     </td>
                     <td class="p-3">
                       <span class="px-2 py-0.5 rounded text-[10px] font-bold" :class="Number(par.remesa_error_margen || par.error_margen || 0) === 0 ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-amber-950 text-amber-300 border border-amber-800'" x-text="(Number(par.remesa_error_margen || par.error_margen || 0) * 100).toFixed(2) + '%'"></span>
@@ -134,7 +135,7 @@
                   </tr>
                 </template>
                 <tr x-show="datosPares.length === 0">
-                  <td colspan="12" class="p-8 text-center text-slate-500 italic">No hay remesas concilidadas en vista_pares.</td>
+                  <td colspan="12" class="p-8 text-center text-slate-500 italic">Esperando transacciones emparejadas en vista_pares...</td>
                 </tr>
               </tbody>
             </table>
@@ -142,7 +143,7 @@
         </div>
       </div>
 
-      <!-- VISTA: REGISTROS INDIVIDUALES (A/B) -->
+      <!-- VISTA REGISTROS INDIVIDUALES -->
       <div x-show="tablaActiva === 'registros'" class="space-y-4">
         <div class="bg-[#111322] border border-[#262a42] rounded-xl overflow-hidden shadow-xl">
           <div class="overflow-x-auto">
@@ -164,7 +165,7 @@
               <tbody class="divide-y divide-[#262a42] font-medium text-slate-300">
                 <template x-for="r in remesas" :key="r.id">
                   <tr class="hover:bg-[#16192b] transition-colors">
-                    <td class="p-3 font-mono text-sky-400 font-bold" x-text="'#' + r.hash_corto"></td>
+                    <td class="p-3 font-mono text-amber-400 font-bold" x-text="'#' + r.hash_corto"></td>
                     <td class="p-3 text-slate-400 font-mono" x-text="new Date(r.fecha_hora || r.created_at).toLocaleString()"></td>
                     <td class="p-3 font-semibold text-white" x-text="r.nombre_asesor"></td>
                     <td class="p-3">
@@ -176,7 +177,7 @@
                     <td class="p-3 text-slate-400" x-text="r.banco || 'N/A'"></td>
                     <td class="p-3">
                       <template x-if="r.hiperlink">
-                        <a :href="r.hiperlink" target="_blank" class="text-sky-400 hover:underline font-mono">Ver R2 ↗</a>
+                        <a :href="r.hiperlink" target="_blank" class="text-amber-400 hover:underline font-mono">Ver R2 ↗</a>
                       </template>
                       <template x-if="!r.hiperlink">
                         <span class="text-slate-600 italic">Sin adjunto</span>
@@ -192,38 +193,7 @@
           </div>
         </div>
       </div>
-<!-- Sidebar Lateral con Logo PNG Adaptado -->
-<aside class="w-64 bg-[#111322] border-r border-[#262a42] p-4 flex flex-col justify-between shrink-0 hidden md:flex">
-  <div>
-    <!-- Tarjeta Contenedora para resaltar PNG con texto negro -->
-    <div class="px-3 py-2.5 mb-6 border border-[#262a42] bg-slate-100/95 rounded-xl shadow-lg flex items-center justify-center">
-      <img src="/logo.png" alt="Inversiones NAUPAR" class="w-full max-h-14 object-contain">
-    </div>
 
-    <nav class="space-y-1.5 text-xs font-semibold">
-      <p class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Conciliación Binomial</p>
-      
-      <button @click="cambiarTabla('vista_pares')" :class="tablaActiva === 'vista_pares' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
-        <span>⇄ Vista Pares ($2\text{X-ia}$)</span>
-      </button>
-
-      <button @click="cambiarTabla('registros')" :class="tablaActiva === 'registros' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
-        <span>📋 Visor de Remesas</span>
-      </button>
-
-      <div class="py-2"><hr class="border-[#262a42]"></div>
-      <p class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Revisión de Bases</p>
-
-      <button @click="cambiarTabla('cola_recepcion')" :class="tablaActiva === 'cola_recepcion' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
-        <span>📥 Cola Recepción</span>
-      </button>
-    </nav>
-  </div>
-
-  <div class="p-2 border-t border-[#262a42] text-[10px] text-slate-500 font-mono text-center">
-    <span>NAUPAR Engine v1.0 • Express + Zod</span>
-  </div>
-</aside>
     </main>
   </div>
 
