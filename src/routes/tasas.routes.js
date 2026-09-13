@@ -40,12 +40,13 @@ async function initTasasSchema() {
 }
 initTasasSchema();
 
-// 2. GET /api/tasas/imagenes -> Consulta comprobantes de NAUPAR desde comprobantes_test
+// 2. GET /api/tasas/imagenes -> Consulta comprobantes de NAUPAR desde registros_raw
 router.get('/imagenes', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT * FROM comprobantes_test 
+      SELECT * FROM registros_raw 
       WHERE LOWER(COALESCE(socio, empresa, '')) LIKE '%naupar%'
+         OR LOWER(COALESCE(asesor, '')) LIKE '%naupar%'
       ORDER BY id DESC;
     `);
     res.json(result.rows);
