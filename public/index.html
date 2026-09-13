@@ -25,14 +25,7 @@
   </script>
 </head>
 <body class="bg-brand-dark text-slate-200 font-sans antialiased min-h-screen flex" x-data="dashboardApp()" x-init="init()">
-async cargarImagenes() {
-  try {
-    const res = await fetch('/api/tasas/imagenes');
-    if (res.ok) this.imagenes = await res.json();
-  } catch (e) {
-    console.error('Error al cargar imágenes:', e);
-  }
-}
+
   <!-- Sidebar Lateral -->
   <aside class="w-64 bg-[#111322] border-r border-[#262a42] p-4 flex flex-col justify-between shrink-0 hidden md:flex">
     <div>
@@ -424,10 +417,10 @@ async cargarImagenes() {
         },
         async cargarImagenes() {
           try {
-            const res = await fetch('/api/imagenes');
+            const res = await fetch('/api/tasas/imagenes');
             if (res.ok) this.imagenes = await res.json();
           } catch (e) {
-            console.error('Error al cargar imagenes:', e);
+            console.error('Error al cargar imágenes:', e);
           }
         }
       }
