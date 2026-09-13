@@ -41,29 +41,55 @@ router.get('/imagenes', async (req, res) => {
   }
 });
 
-// GET /api/tasas/fetch-binance -> Extracción en vivo Binance P2P
+// GET /api/tasas/fetch-binance -> Extracción en vivo Binance P2P exclusiva para las 13 monedas NAUPAR
 router.get('/fetch-binance', async (req, res) => {
   try {
-    const fiats = ['PEN', 'COP', 'CLP', 'ARS', 'MXN', 'VES', 'BOB', 'DOP', 'PYG', 'CRC', 'EUR', 'UYU', 'BRL'];
-    const ratesObj = { USD: 1.0, USDT: 1.0 };
+    const fiatsP2P = ['CLP', 'PEN', 'COP', 'MXN', 'VES', 'EUR', 'ARS', 'PYG'];
 
-    await Promise.all(fiats.map(async (fiat) => {
+    // Objeto objetivo estricto según especificación
+    const ratesObj = {
+      USD: 1.0,
+      USDT: 1.0,
+      CLP: 0,
+      PEN: 0,
+      COP: 0,
+      MXN: 0,
+      ECU: 1.0,
+      VES: 0,
+      EUR: 0,
+      ARS: 0,
+      PYG: 0,
+      DBCV: '',
+      EBCV: ''
+    };
+
+    // Consulta en paralelo a Binance P2P
+    await Promise.all(fiatsP2P.map(async (fiat) => {
       try {
         const response = await fetch('https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0' },
-          body: JSON.stringify({ page: 1, rows: 1, asset: 'USDT', tradeType: 'BUY', fiat: fiat })
+          headers: { 
+            'Content-Type': 'application/json', 
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' 
+          },
+          body: JSON.stringify({ 
+            page: 1, 
+            rows: 1, 
+            asset: 'USDT', 
+            tradeType: 'BUY', 
+            fiat: fiat 
+          })
         });
+
         const data = await response.json();
         if (data?.data?.[0]?.adv?.price) {
           ratesObj[fiat] = parseFloat(data.data[0].adv.price);
         }
       } catch (e) {
-        console.error(`Error ${fiat}:`, e.message);
+        console.error(`⚠️ Falló obtención de ${fiat} en Binance:`, e.message);
       }
     }));
 
-    ratesObj['BCV'] = '';
     res.json({ success: true, rates: ratesObj });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
