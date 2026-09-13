@@ -24,7 +24,33 @@
     }
   </script>
 </head>
-<body class="bg-brand-dark text-slate-200 font-sans antialiased min-h-screen flex" x-data="dashboardApp()" x-init="init()">
+<tbody class="divide-y divide-[#262a42] font-medium text-slate-300">
+  <template x-for="img in imagenes" :key="img.id">
+    <tr class="hover:bg-[#16192b] transition-colors">
+      <td class="p-3 font-mono text-amber-400 font-bold" x-text="'#' + img.id"></td>
+      <td class="p-3 text-slate-400 font-mono" x-text="new Date(img.created_at || img.timestamp || img.fecha || img.fecha_hora).toLocaleString()"></td>
+      <td class="p-3 font-bold text-emerald-400" x-text="img.remitente || img.pushname || img.socio || img.empresa || 'Inversiones Naupar'"></td>
+      <td class="p-3 text-white truncate max-w-[150px]" x-text="img.caption || img.texto || img.asesor || 'N/A'"></td>
+      <td class="p-3" x-text="img.titular || img.nombre_titular || img.remotejid || 'N/A'"></td>
+      <td class="p-3 font-bold text-white" x-text="Number(img.monto || 0).toFixed(2)"></td>
+      <td class="p-3 font-bold" x-text="img.moneda || 'USD'"></td>
+      <td class="p-3">
+        <template x-if="img.hiperlink || img.url_comprobante || img.r2_url || img.url">
+          <a :href="img.hiperlink || img.url_comprobante || img.r2_url || img.url" target="_blank" class="inline-flex items-center gap-1 text-amber-400 hover:text-amber-300 font-bold bg-amber-950/40 border border-amber-800/60 px-2 py-1 rounded text-[11px]">
+            🖼️ Abrir Imagen ↗
+          </a>
+        </template>
+        <template x-if="!(img.hiperlink || img.url_comprobante || img.r2_url || img.url)">
+          <span class="text-slate-600 italic">Sin imagen</span>
+        </template>
+      </td>
+    </tr>
+  </template>
+  <tr x-show="imagenes.length === 0">
+    <td colspan="8" class="p-8 text-center text-slate-500 italic">No se encontraron registros de NAUPAR en la tabla registros_raw...</td>
+  </tr>
+</tbody>
+  <body class="bg-brand-dark text-slate-200 font-sans antialiased min-h-screen flex" x-data="dashboardApp()" x-init="init()">
 
   <!-- Sidebar Lateral -->
   <aside class="w-64 bg-[#111322] border-r border-[#262a42] p-4 flex flex-col justify-between shrink-0 hidden md:flex">
