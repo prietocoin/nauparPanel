@@ -2,12 +2,9 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 
-// Utiliza la conexión nativa existente
 const pool = db.pool || db;
 
-let borradorTasasNaupar = {};
-
-// Inicialización del esquema independiente
+// Inicialización de tablas independientes en PostgreSQL
 async function initTasasSchema() {
   try {
     await pool.query(`
@@ -26,17 +23,24 @@ async function initTasasSchema() {
         creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
+      -- Tabla de borrador persistente en PostgreSQL (Sin Google Sheets ni RAM)
+      CREATE TABLE IF NOT EXISTS naupar_borrador_tasas (
+        moneda VARCHAR(10) PRIMARY KEY,
+        tasa_base NUMERIC(18, 6) NOT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
       CREATE INDEX IF NOT EXISTS idx_naupar_mercado_tasas_id ON naupar_mercado_tasas(id_tasa);
       CREATE INDEX IF NOT EXISTS idx_naupar_mercado_tasas_ts ON naupar_mercado_tasas(timestamp ASC);
     `);
-    console.log('✅ Tablas independientes naupar_mercado_tasas verificadas.');
+    console.log('✅ Tablas PostgreSQL de NAUPAR (mercado, borrador y notificaciones) verificadas.');
   } catch (err) {
-    console.error('⚠️ Error al inicializar tablas de tasas NAUPAR:', err.message);
+    console.error('⚠️ Error al inicializar tablas en PostgreSQL:', err.message);
   }
 }
 initTasasSchema();
 
-// GET /api/tasas/ultimas
+// 1. GET: Últimas tasas oficiales en producción
 router.get('/ultimas', async (req, res) => {
   try {
     const lastLotRes = await pool.query(`
@@ -64,29 +68,77 @@ router.get('/ultimas', async (req, res) => {
   }
 });
 
-// POST /api/tasas/n8n-webhook
-router.post('/n8n-webhook', (req, res) => {
+// 2. POST: Webhook n8n -> Procesa WhatsApp / JSON y guarda en PostgreSQL
+router.post('/n8n-webhook', async (req, res) => {
   try {
     let payload = req.body;
     if (Array.isArray(payload)) payload = payload[0] || {};
     if (payload.json) payload = payload.json;
 
-    borradorTasasNaupar = payload;
-    return res.json({ success: true, message: 'Borrador NAUPAR cargado', rates: borradorTasasNaupar });
+    let ratesObj = {};
+
+    if (payload.rates) {
+      ratesObj = payload.rates;
+    } else if (typeof payload === 'object' && !payload.conversation && !payload.message) {
+      ratesObj = payload;
+    }
+
+    // Procesa directamente el texto enviado por WhatsApp (Ejemplo: Regex_945_3,35_3120...)
+    const textoMsg = payload.conversation || payload.message?.conversation || payload.text || '';
+    if (textoMsg.includes('Regex_')) {
+      const partes = textoMsg.split('Regex_')[1].split('_');
+      const ordenMonedas = ['CLP', 'PEN', 'COP', 'USD', 'MXN', 'ECU', 'VES', 'EUR', 'ARS', 'PYG', 'DBCV', 'EBCV', 'USDT'];
+      partes.forEach((val, idx) => {
+        if (ordenMonedas[idx] && val) {
+          const numParsed = parseFloat(val.replace(',', '.'));
+          if (!isNaN(numParsed)) ratesObj[ordenMonedas[idx]] = numParsed;
+        }
+      });
+    }
+
+    if (Object.keys(ratesObj).length === 0) {
+      return res.status(400).json({ success: false, message: 'No se encontraron tasas procesables.' });
+    }
+
+    // Guarda o actualiza en naupar_borrador_tasas (PostgreSQL)
+    for (const [moneda, valor] of Object.entries(ratesObj)) {
+      if (valor !== null && valor !== undefined && !isNaN(parseFloat(valor))) {
+        await pool.query(`
+          INSERT INTO naupar_borrador_tasas (moneda, tasa_base, updated_at)
+          VALUES ($1, $2, CURRENT_TIMESTAMP)
+          ON CONFLICT (moneda) 
+          DO UPDATE SET tasa_base = EXCLUDED.tasa_base, updated_at = CURRENT_TIMESTAMP;
+        `, [moneda.toUpperCase(), parseFloat(valor)]);
+      }
+    }
+
+    return res.json({ success: true, message: 'Borrador guardado exitosamente en PostgreSQL', rates: ratesObj });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// GET /api/tasas/fetch-hoo
-router.get('/fetch-hoo', (req, res) => {
-  if (!borradorTasasNaupar || Object.keys(borradorTasasNaupar).length === 0) {
-    return res.status(404).json({ success: false, msg: 'Sin borrador en memoria para NAUPAR.' });
+// 3. GET: Obtener borrador directamente desde PostgreSQL
+router.get('/fetch-hoo', async (req, res) => {
+  try {
+    const rowsRes = await pool.query(`SELECT moneda, tasa_base FROM naupar_borrador_tasas;`);
+    
+    if (rowsRes.rows.length === 0) {
+      return res.status(404).json({ success: false, msg: 'Sin borrador en la base de datos PostgreSQL.' });
+    }
+
+    const ratesObj = {};
+    rowsRes.rows.forEach(r => {
+      ratesObj[r.moneda.toUpperCase()] = parseFloat(r.tasa_base);
+    });
+
+    return res.json({ success: true, rates: ratesObj });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
   }
-  return res.json({ success: true, rates: borradorTasasNaupar });
 });
 
-// POST /api/tasas/publicar
+// 4. POST: Publicar Borrador a Lote Oficial en PostgreSQL
 router.post('/publicar', async (req, res) => {
   try {
     const { id_tasa, tasas } = req.body;
@@ -110,7 +162,7 @@ router.post('/publicar', async (req, res) => {
     }
 
     for (const [moneda, valor] of Object.entries(tasas)) {
-      if (valor && !isNaN(valor)) {
+      if (valor !== null && valor !== undefined && !isNaN(parseFloat(valor))) {
         await pool.query(
           `INSERT INTO naupar_mercado_tasas (id_tasa, moneda, tasa_base, timestamp) VALUES ($1, $2, $3, $4);`,
           [codigoTasa, moneda.toUpperCase(), parseFloat(valor), timestamp]
@@ -120,13 +172,13 @@ router.post('/publicar', async (req, res) => {
 
     await pool.query(`INSERT INTO naupar_notificaciones_tasas (id_tasa) VALUES ($1);`, [codigoTasa]);
 
-    res.json({ success: true, id_tasa: codigoTasa, message: `Tasa ${codigoTasa} publicada correctamente` });
+    res.json({ success: true, id_tasa: codigoTasa, message: `Tasa ${codigoTasa} publicada en PostgreSQL` });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// POST /api/tasas/reenviar
+// 5. POST: Reenviar notificación de lote
 router.post('/reenviar', async (req, res) => {
   try {
     const { id_tasa } = req.body;
