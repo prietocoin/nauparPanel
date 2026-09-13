@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Inversiones NAUPAR - Visor de Auditoría</title>
+  <title>Inversiones NAUPAR - Visor Ejecutivo</title>
   
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="shortcut icon" href="/favicon.png">
@@ -12,10 +12,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     [x-cloak] { display: none !important; }
-    .table-scroll::-webkit-scrollbar { height: 6px; }
-    .table-scroll::-webkit-scrollbar-thumb { background-color: #262a42; border-radius: 10px; }
-    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #334155; border-radius: 4px; }
+    .table-scroll::-webkit-scrollbar { height: 5px; }
+    .table-scroll::-webkit-scrollbar-thumb { background-color: #2a2518; border-radius: 10px; }
     body { padding-bottom: env(safe-area-inset-bottom); }
   </style>
   <script>
@@ -24,58 +22,72 @@
       theme: {
         extend: {
           colors: {
-            brand: { dark: '#0b0d19', card: '#111322', border: '#262a42', gold: '#d4af37' }
+            gold: {
+              300: '#fef08a',
+              400: '#facc15',
+              500: '#d4af37',
+              600: '#ca8a04',
+              700: '#a16207',
+            },
+            obsidian: {
+              950: '#050505',
+              900: '#0b0b0e',
+              800: '#121216',
+              700: '#1c1c22',
+              border: '#2a2820'
+            }
           }
         }
       }
     }
   </script>
 </head>
-<body class="bg-brand-dark text-slate-200 font-sans antialiased min-h-screen flex flex-col md:flex-row" x-data="dashboardApp()" x-init="init()">
+<body class="bg-obsidian-950 text-slate-200 font-sans antialiased min-h-screen flex flex-col md:flex-row" x-data="dashboardApp()" x-init="init()">
 
-  <!-- SIDEBAR LATERAL (Solo Desktop) -->
-  <aside class="w-64 bg-[#111322] border-r border-[#262a42] p-4 flex-col justify-between shrink-0 hidden md:flex h-screen sticky top-0 z-40">
+  <!-- SIDEBAR DESKTOP (Negro / Dorado) -->
+  <aside class="w-64 bg-obsidian-900 border-r border-obsidian-border p-4 flex-col justify-between shrink-0 hidden md:flex h-screen sticky top-0 z-40">
     <div>
-      <div class="px-3 py-2.5 mb-6 border border-[#262a42] bg-slate-100/95 rounded-xl shadow-lg flex items-center justify-center">
-        <img src="/logo.png" alt="Inversiones NAUPAR" class="w-full max-h-14 object-contain">
+      <div class="px-3 py-3 mb-6 border border-gold-500/20 bg-gradient-to-b from-obsidian-800 to-obsidian-950 rounded-xl shadow-xl flex items-center justify-center">
+        <img src="/logo.png" alt="Inversiones NAUPAR" class="w-full max-h-14 object-contain filter drop-shadow">
       </div>
 
-      <nav class="space-y-1.5 text-xs font-semibold">
-        <!-- Imágenes ahora es el primero -->
-        <button @click="cambiarTabla('imagenes')" :class="tablaActiva === 'imagenes' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
+      <nav class="space-y-1.5 text-xs font-medium">
+        <!-- 1. IMÁGENES PRIMERO -->
+        <button @click="cambiarTabla('imagenes')" :class="tablaActiva === 'imagenes' ? 'bg-gold-500/10 text-gold-400 border border-gold-500/30 font-bold shadow-lg shadow-gold-500/5' : 'text-slate-400 hover:bg-obsidian-800 hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all">
           <span class="text-base">🖼️</span> <span>Imágenes RAW</span>
         </button>
-        
-        <div class="py-2"><hr class="border-[#262a42]"></div>
 
-        <button @click="cambiarTabla('registros')" :class="tablaActiva === 'registros' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
+        <div class="py-1.5"><hr class="border-obsidian-border"></div>
+        
+        <!-- 2. REMESAS -->
+        <button @click="cambiarTabla('registros')" :class="tablaActiva === 'registros' ? 'bg-gold-500/10 text-gold-400 border border-gold-500/30 font-bold shadow-lg shadow-gold-500/5' : 'text-slate-400 hover:bg-obsidian-800 hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all">
           <span class="text-base">📋</span> <span>Remesas</span>
         </button>
         
-        <button @click="cambiarTabla('cartelera_tasas')" :class="tablaActiva === 'cartelera_tasas' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
+        <!-- 3. TASAS -->
+        <button @click="cambiarTabla('cartelera_tasas')" :class="tablaActiva === 'cartelera_tasas' ? 'bg-gold-500/10 text-gold-400 border border-gold-500/30 font-bold shadow-lg shadow-gold-500/5' : 'text-slate-400 hover:bg-obsidian-800 hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all">
           <span class="text-base">📊</span> <span>Tasas</span>
         </button>
       </nav>
     </div>
 
-    <div class="p-2 border-t border-[#262a42] text-[10px] text-slate-500 font-mono text-center">
-      <span>NAUPAR Engine v1.0</span>
+    <div class="p-2 border-t border-obsidian-border text-[10px] text-slate-600 font-mono text-center">
+      <span>INVERSIONES NAUPAR • Executive v2.0</span>
     </div>
   </aside>
 
-  <!-- NAVEGACIÓN INFERIOR (Solo Móvil) -->
-  <nav class="md:hidden fixed bottom-0 left-0 w-full bg-[#111322] border-t border-[#262a42] flex justify-around items-center pb-2 pt-2 px-2 z-40 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.3)]">
-    <!-- Imágenes ahora es el primero -->
-    <button @click="cambiarTabla('imagenes')" :class="tablaActiva === 'imagenes' ? 'text-amber-400' : 'text-slate-500 hover:text-slate-300'" class="flex flex-col items-center flex-1 transition-colors">
-      <span class="text-xl mb-1">🖼️</span>
+  <!-- NAVEGACIÓN INFERIOR MÓVIL (Black & Gold) -->
+  <nav class="md:hidden fixed bottom-0 left-0 w-full bg-obsidian-900/95 backdrop-blur-md border-t border-obsidian-border flex justify-around items-center pb-2 pt-2 px-2 z-40 shadow-[0_-10px_20px_rgba(0,0,0,0.8)]">
+    <button @click="cambiarTabla('imagenes')" :class="tablaActiva === 'imagenes' ? 'text-gold-400' : 'text-slate-500'" class="flex flex-col items-center flex-1 transition-colors">
+      <span class="text-xl mb-0.5">🖼️</span>
       <span class="text-[10px] font-bold">Imágenes</span>
     </button>
-    <button @click="cambiarTabla('registros')" :class="tablaActiva === 'registros' ? 'text-amber-400' : 'text-slate-500 hover:text-slate-300'" class="flex flex-col items-center flex-1 transition-colors">
-      <span class="text-xl mb-1">📋</span>
+    <button @click="cambiarTabla('registros')" :class="tablaActiva === 'registros' ? 'text-gold-400' : 'text-slate-500'" class="flex flex-col items-center flex-1 transition-colors">
+      <span class="text-xl mb-0.5">📋</span>
       <span class="text-[10px] font-bold">Remesas</span>
     </button>
-    <button @click="cambiarTabla('cartelera_tasas')" :class="tablaActiva === 'cartelera_tasas' ? 'text-amber-400' : 'text-slate-500 hover:text-slate-300'" class="flex flex-col items-center flex-1 transition-colors">
-      <span class="text-xl mb-1">📊</span>
+    <button @click="cambiarTabla('cartelera_tasas')" :class="tablaActiva === 'cartelera_tasas' ? 'text-gold-400' : 'text-slate-500'" class="flex flex-col items-center flex-1 transition-colors">
+      <span class="text-xl mb-0.5">📊</span>
       <span class="text-[10px] font-bold">Tasas</span>
     </button>
   </nav>
@@ -84,84 +96,78 @@
   <div class="flex-1 flex flex-col min-h-screen w-full overflow-x-hidden pb-16 md:pb-0">
     
     <!-- Header Principal -->
-    <header class="bg-[#111322] border-b border-[#262a42] p-3 md:p-4 flex flex-wrap justify-between items-center gap-3 sticky top-0 z-30 shadow-sm">
+    <header class="bg-obsidian-900 border-b border-obsidian-border p-3 md:p-4 flex flex-wrap justify-between items-center gap-3 sticky top-0 z-30 shadow-md">
       <div class="flex items-center gap-3">
-        <div class="bg-slate-100/95 p-1 rounded-lg md:hidden">
+        <div class="bg-obsidian-800 p-1.5 rounded-lg border border-gold-500/20 md:hidden">
           <img src="/logo.png" alt="NAUPAR" class="h-6 object-contain">
         </div>
         <div>
-          <h1 class="text-sm md:text-lg font-bold text-white capitalize leading-tight" x-text="tablaActiva === 'imagenes' ? 'Comprobantes RAW' : (tablaActiva === 'registros' ? 'Visor de Remesas' : 'Baúl de Tasas')"></h1>
-          <p class="text-[10px] md:text-xs text-slate-400 hidden sm:block">Auditoría pasiva en tiempo real para WhatsApp</p>
+          <h1 class="text-sm md:text-lg font-bold text-white capitalize leading-tight" x-text="tablaActiva === 'imagenes' ? 'Comprobantes RAW' : (tablaActiva === 'registros' ? 'Visor de Remesas' : 'Cartelera & Baúl de Tasas')"></h1>
+          <p class="text-[10px] md:text-xs text-slate-500 hidden sm:block">Inversiones NAUPAR — Auditoría en Tiempo Real</p>
         </div>
       </div>
 
-      <div class="flex items-center gap-2 md:gap-3">
-        <span class="text-[10px] md:text-xs font-mono bg-amber-950/60 text-amber-400 border border-amber-800/60 px-3 py-1 rounded-full font-bold" x-text="tablaActiva === 'imagenes' ? imagenes.length + ' RAW' : (tablaActiva === 'cartelera_tasas' ? 'Control de Mercado' : remesas.length + ' Regs')"></span>
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] md:text-xs font-mono bg-gold-500/10 text-gold-400 border border-gold-500/30 px-3 py-1 rounded-full font-bold" x-text="tablaActiva === 'imagenes' ? imagenes.length + ' Comprobantes' : (tablaActiva === 'cartelera_tasas' ? 'Mercado Activo' : remesas.length + ' Regs')"></span>
       </div>
     </header>
 
     <!-- Main Body -->
-    <main class="p-3 md:p-4 space-y-4 flex-1 w-full max-w-[100vw]">
+    <main class="p-3 md:p-5 space-y-4 flex-1 w-full max-w-[100vw]">
 
-      <!-- VISTA IMÁGENES RAW (CARDS GRID MINIMALISTA) -->
+      <!-- 1. VISTA IMÁGENES RAW (CARDS NEGRO / DORADO) -->
       <div x-show="tablaActiva === 'imagenes'" class="space-y-4 w-full" x-cloak>
-        <div class="bg-[#111322] border border-[#262a42] rounded-xl overflow-hidden shadow-xl p-4 md:p-5">
+        <div class="bg-obsidian-900 border border-obsidian-border rounded-2xl p-4 md:p-5 shadow-2xl">
           
-          <div class="flex justify-between items-center border-b border-[#262a42] pb-3 mb-5">
-            <h2 class="text-[11px] md:text-xs font-bold text-amber-400 uppercase tracking-wider">Histórico RAW</h2>
-            <div class="flex items-center gap-3">
-              <span class="text-[9px] md:text-[10px] text-slate-500 font-mono hidden sm:block">PostgreSQL Automático</span>
-              <button @click="init()" class="text-slate-400 hover:text-white transition-colors" title="Actualizar">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-              </button>
-            </div>
+          <div class="flex justify-between items-center border-b border-obsidian-border pb-3 mb-5">
+            <h2 class="text-[11px] md:text-xs font-bold text-gold-400 uppercase tracking-widest">Galería de Comprobantes</h2>
+            <button @click="init()" class="text-slate-400 hover:text-gold-400 transition-colors p-1" title="Sincronizar">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+            </button>
           </div>
 
-          <!-- GRID DE CARDS: Minimalista -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-5">
+          <!-- GRID CARDS: Minimalista sin botones redundantes -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
             
             <template x-for="img in imagenes" :key="img.id || Math.random()">
-              <div class="bg-[#16192b] border border-[#262a42] rounded-xl overflow-hidden hover:border-slate-500 hover:shadow-lg hover:shadow-black/40 transition-all flex flex-col group relative">
+              <div class="bg-obsidian-800 border border-obsidian-border rounded-xl overflow-hidden hover:border-gold-500/40 transition-all duration-300 flex flex-col group relative">
                 
-                <!-- PORTADA IMAGEN (Interactiva) -->
-                <div class="h-40 md:h-48 w-full bg-[#0b0d19] relative border-b border-[#262a42]">
+                <!-- PORTADA IMAGEN (Click directo para abrir) -->
+                <div class="h-40 md:h-48 w-full bg-obsidian-950 relative border-b border-obsidian-border">
                   <template x-if="img.url">
-                    <a :href="img.url" target="_blank" class="block w-full h-full p-2 md:p-3 cursor-pointer">
-                      <img :src="img.url" class="w-full h-full object-contain drop-shadow-md group-hover:scale-105 transition-transform duration-300" alt="Comprobante" />
+                    <a :href="img.url" target="_blank" class="block w-full h-full p-2 cursor-pointer">
+                      <img :src="img.url" class="w-full h-full object-contain drop-shadow group-hover:scale-105 transition-transform duration-300" alt="Comprobante" />
                     </a>
                   </template>
                   <template x-if="!img.url">
                     <div class="w-full h-full flex flex-col items-center justify-center text-slate-600 font-mono text-xs">
-                      <span class="text-2xl mb-1">📄</span> Sin foto
+                      <span class="text-2xl mb-1">🖼️</span> Sin adjunto
                     </div>
                   </template>
 
-                  <!-- BADGE HASH SUTIL -->
-                  <div class="absolute top-2 left-2 bg-[#111322]/80 backdrop-blur text-amber-400 font-mono text-[9px] md:text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm border border-[#262a42]" x-text="'#' + (img.hash || img.id)"></div>
+                  <!-- BADGE HASH DORADO -->
+                  <div class="absolute top-2 left-2 bg-obsidian-950/90 text-gold-400 font-mono text-[9px] md:text-[10px] font-bold px-2 py-0.5 rounded border border-gold-500/30 shadow-md" x-text="'#' + (img.hash || img.id)"></div>
                 </div>
 
-                <!-- DETALLES CARD -->
-                <div class="p-3 md:p-4 flex-1 flex flex-col gap-1.5">
-                  <!-- Cabecera: Remitente y Fecha -->
+                <!-- DETALLES MINIMALISTAS -->
+                <div class="p-3 flex-1 flex flex-col gap-1.5">
                   <div class="flex justify-between items-start gap-2">
-                    <div class="font-bold text-emerald-400 text-[11px] md:text-xs truncate flex-1" x-text="img.remitente" :title="img.remitente"></div>
+                    <div class="font-bold text-slate-200 text-[11px] md:text-xs truncate flex-1" x-text="img.remitente" :title="img.remitente"></div>
                     <div class="text-[8px] md:text-[9px] text-slate-500 font-mono whitespace-nowrap pt-0.5" x-text="formatDate(img.fecha)"></div>
                   </div>
 
-                  <!-- JID Grupo -->
                   <div class="text-[9px] md:text-[10px] text-slate-500 font-mono truncate" x-text="img.remotejid" :title="img.remotejid"></div>
 
-                  <!-- CAJA DE TEXTO (CAPTION) - Limpio con Line Clamp -->
-                  <div class="mt-2 text-[9px] md:text-[10px] text-slate-300 font-mono line-clamp-2 leading-relaxed" x-text="img.caption || 'Sin texto...'" :title="img.caption"></div>
+                  <!-- CAPTION LOTE EN 2 LÍNEAS -->
+                  <div class="mt-1 text-[9px] md:text-[10px] text-slate-400 font-mono line-clamp-2 leading-tight" x-text="img.caption || 'Sin texto...'" :title="img.caption"></div>
                 </div>
 
               </div>
             </template>
 
-            <!-- ESTADO VACÍO -->
             <template x-if="imagenes.length === 0">
-              <div class="col-span-full py-16 text-center text-slate-500 font-mono text-sm bg-[#16192b] border border-dashed border-[#262a42] rounded-xl">
-                Cargando comprobantes RAW o base de datos vacía...
+              <div class="col-span-full py-16 text-center text-slate-600 font-mono text-xs bg-obsidian-800 border border-dashed border-obsidian-border rounded-xl">
+                Cargando comprobantes...
               </div>
             </template>
 
@@ -169,48 +175,48 @@
         </div>
       </div>
 
-      <!-- VISTA REMESAS -->
+      <!-- 2. VISTA REMESAS -->
       <div x-show="tablaActiva === 'registros'" class="space-y-4" x-cloak>
-        <div class="bg-[#111322] border border-[#262a42] rounded-xl overflow-hidden shadow-xl">
+        <div class="bg-obsidian-900 border border-obsidian-border rounded-2xl overflow-hidden shadow-2xl">
           <div class="overflow-x-auto table-scroll w-full">
             <table class="w-full text-left border-collapse text-xs min-w-[800px]">
-              <thead class="bg-[#0b0d19] text-slate-400 uppercase tracking-wider font-semibold">
+              <thead class="bg-obsidian-950 text-slate-400 uppercase tracking-wider font-semibold border-b border-obsidian-border">
                 <tr>
-                  <th class="p-3 whitespace-nowrap">HASH</th>
-                  <th class="p-3 whitespace-nowrap">Fecha / Hora</th>
-                  <th class="p-3 whitespace-nowrap">Asesor</th>
-                  <th class="p-3 whitespace-nowrap">Tipo</th>
-                  <th class="p-3 whitespace-nowrap">Titular</th>
-                  <th class="p-3 whitespace-nowrap">Monto</th>
-                  <th class="p-3 whitespace-nowrap">Moneda</th>
-                  <th class="p-3 whitespace-nowrap">Banco</th>
-                  <th class="p-3 whitespace-nowrap">Comprobante</th>
-                  <th class="p-3 whitespace-nowrap">Estado</th>
+                  <th class="p-3">HASH</th>
+                  <th class="p-3">Fecha / Hora</th>
+                  <th class="p-3">Asesor</th>
+                  <th class="p-3">Tipo</th>
+                  <th class="p-3">Titular</th>
+                  <th class="p-3">Monto</th>
+                  <th class="p-3">Moneda</th>
+                  <th class="p-3">Banco</th>
+                  <th class="p-3">Comprobante</th>
+                  <th class="p-3">Estado</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-[#262a42] font-medium text-slate-300">
+              <tbody class="divide-y divide-obsidian-border font-medium text-slate-300">
                 <template x-for="r in remesas" :key="r.id">
-                  <tr class="hover:bg-[#16192b] transition-colors">
-                    <td class="p-3 font-mono text-amber-400 font-bold" x-text="'#' + (r.hash_corto || r.id)"></td>
-                    <td class="p-3 text-slate-400 font-mono" x-text="formatDate(r.fecha_hora || r.created_at)"></td>
+                  <tr class="hover:bg-obsidian-800 transition-colors">
+                    <td class="p-3 font-mono text-gold-400 font-bold" x-text="'#' + (r.hash_corto || r.id)"></td>
+                    <td class="p-3 text-slate-500 font-mono" x-text="formatDate(r.fecha_hora || r.created_at)"></td>
                     <td class="p-3 font-semibold text-white" x-text="r.nombre_asesor"></td>
                     <td class="p-3">
-                      <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase" :class="String(r.tipo_operacion).toLowerCase().includes('ingreso') || String(r.tipo_operacion).toLowerCase().includes('deposito') ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-rose-950 text-rose-300 border border-rose-800'" x-text="r.tipo_operacion || 'ENVIO'"></span>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase" :class="String(r.tipo_operacion).toLowerCase().includes('ingreso') || String(r.tipo_operacion).toLowerCase().includes('deposito') ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-800' : 'bg-rose-950/80 text-rose-400 border border-rose-800'" x-text="r.tipo_operacion || 'ENVIO'"></span>
                     </td>
                     <td class="p-3 truncate max-w-[150px]" x-text="r.titular || 'N/A'"></td>
                     <td class="p-3 font-bold text-white" x-text="Number(r.monto).toFixed(2)"></td>
                     <td class="p-3 font-bold" x-text="r.moneda"></td>
-                    <td class="p-3 text-slate-400" x-text="r.banco || 'N/A'"></td>
+                    <td class="p-3 text-slate-500" x-text="r.banco || 'N/A'"></td>
                     <td class="p-3">
                       <template x-if="r.hiperlink">
-                        <a :href="r.hiperlink" target="_blank" class="text-amber-400 hover:underline font-mono inline-flex items-center gap-1">Ver R2 ↗</a>
+                        <a :href="r.hiperlink" target="_blank" class="text-gold-400 hover:underline font-mono">Ver R2 ↗</a>
                       </template>
                       <template x-if="!r.hiperlink">
                         <span class="text-slate-600 italic">Sin adjunto</span>
                       </template>
                     </td>
                     <td class="p-3">
-                      <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800" x-text="r.estado_proceso || 'PENDIENTE'"></span>
+                      <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800" x-text="r.estado_proceso || 'PENDIENTE'"></span>
                     </td>
                   </tr>
                 </template>
@@ -220,46 +226,52 @@
         </div>
       </div>
 
-      <!-- VISTA CARTELERA TASAS -->
+      <!-- 3. VISTA TASAS CON BOTONES REORGANIZADOS -->
       <div x-show="tablaActiva === 'cartelera_tasas'" class="space-y-4 md:space-y-6" x-cloak>
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-[#262a42] pb-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-obsidian-border pb-4">
           <div>
-            <h1 class="text-lg md:text-xl font-bold text-white tracking-wide">Baúl & Cartelera de Tasas</h1>
-            <p class="text-xs text-slate-400">Control de mercado y emisión oficial de tasas NAUPAR</p>
+            <h1 class="text-lg md:text-xl font-bold text-white tracking-wide">Gestión Oficial de Tasas</h1>
+            <p class="text-xs text-slate-500">Inversiones NAUPAR — Emisión e Integración P2P</p>
           </div>
           <div class="flex items-center gap-2 w-full sm:w-auto">
-            <button @click="init()" class="flex-1 sm:flex-none justify-center bg-amber-600 hover:bg-amber-500 text-white px-3 py-2 rounded-lg text-xs font-bold transition-all shadow flex items-center gap-1.5">
+            <!-- BOTÓN SINCRONIZAR Y TUERCA JUNTOS -->
+            <button @click="init()" class="flex-1 sm:flex-none justify-center bg-gold-600 hover:bg-gold-500 text-obsidian-950 font-bold px-4 py-2 rounded-xl text-xs transition-all shadow-lg flex items-center gap-1.5">
               <span>🔄</span> <span>Sincronizar</span>
             </button>
-            <button @click="modalFactores = true" class="bg-[#16192b] hover:bg-slate-800 text-amber-400 border border-[#262a42] p-2 rounded-lg transition-all shadow" title="Configurar Factores">
+            <button @click="modalFactores = true" class="bg-obsidian-800 hover:bg-obsidian-700 text-gold-400 border border-gold-500/30 p-2 rounded-xl transition-all shadow" title="Matriz de Factores">
               <span class="text-base">⚙️</span>
             </button>
           </div>
         </div>
 
-        <div class="bg-[#111322] border border-[#262a42] rounded-xl p-3 md:p-5 shadow-xl space-y-4">
-          <div class="flex flex-wrap justify-between items-center gap-2 border-b border-[#262a42] pb-3">
+        <!-- CUADRO 1: TASAS ACTIVAS CON REENVIAR DENTRO -->
+        <div class="bg-obsidian-900 border border-obsidian-border rounded-2xl p-4 md:p-5 shadow-2xl space-y-4">
+          <div class="flex flex-wrap justify-between items-center gap-2 border-b border-obsidian-border pb-3">
             <h2 class="text-[11px] md:text-xs font-bold text-slate-200 tracking-wider uppercase">Tasas Activas en Producción</h2>
             <div class="flex items-center gap-2">
               <span id="lbl-lote-activo" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] md:text-[11px] font-extrabold px-2.5 py-1 rounded-full">Lote Activo: T000</span>
-              <button onclick="reenviarTasaActual()" class="bg-amber-600/20 text-amber-400 border border-amber-500/40 text-[11px] md:text-xs font-bold px-3 py-1 rounded-lg hover:bg-amber-600/30 transition flex items-center gap-1">
+              <!-- REENVIAR TASA ACTUAL AQUÍ -->
+              <button onclick="reenviarTasaActual()" class="bg-gold-500/10 text-gold-400 border border-gold-500/30 text-[11px] font-bold px-3 py-1 rounded-lg hover:bg-gold-500/20 transition flex items-center gap-1">
                 🔄 Reenviar Tasa Actual
               </button>
             </div>
           </div>
-          <div id="grid-tasas-activas" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2 md:gap-3"></div>
+          <div id="grid-tasas-activas" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2.5"></div>
         </div>
 
-        <div class="bg-[#111322] border border-[#262a42] rounded-xl p-3 md:p-5 shadow-xl space-y-4">
-          <div class="flex justify-between items-center border-b border-[#262a42] pb-3">
+        <!-- CUADRO 2: BORRADOR CON CONECTAR BINANCE Y PUBLICAR DENTRO -->
+        <div class="bg-obsidian-900 border border-obsidian-border rounded-2xl p-4 md:p-5 shadow-2xl space-y-4">
+          <div class="flex justify-between items-center border-b border-obsidian-border pb-3">
             <h2 class="text-[11px] md:text-xs font-bold text-slate-300 tracking-wider uppercase">Borrador Capturado (Paso Previo)</h2>
           </div>
-          <div id="grid-tasas-borrador" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2 md:gap-3"></div>
-          <div class="flex flex-wrap justify-end items-center gap-2 pt-2">
-            <button onclick="capturarBorradorHoo()" class="bg-indigo-600/20 text-indigo-300 border border-indigo-500/40 text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-indigo-600/30 transition flex items-center gap-1.5">
-              ⚡ Conectar Hoo API
+          <div id="grid-tasas-borrador" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5"></div>
+          
+          <div class="flex flex-wrap justify-end items-center gap-2.5 pt-3 border-t border-obsidian-border">
+            <!-- CONECTAR BINANCE P2P AL LADO DE PUBLICAR -->
+            <button onclick="consultarApiBinance()" class="bg-obsidian-800 text-gold-400 border border-gold-500/30 text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-obsidian-700 transition flex items-center gap-1.5 shadow">
+              ⚡ Conectar Binance API
             </button>
-            <button onclick="publicarTasaOficial()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-5 py-2.5 rounded-lg shadow-lg transition flex items-center gap-1.5">
+            <button onclick="publicarTasaOficial()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-lg transition flex items-center gap-1.5">
               💸 Publicar Tasa Oficial a Producción
             </button>
           </div>
@@ -269,9 +281,9 @@
     </main>
   </div>
 
-  <!-- MODAL DE CONFIGURACIÓN MATRIZ DE FACTORES -->
+  <!-- MODAL DE FACTORES DINÁMICOS -->
   <div x-show="modalFactores" 
-       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
        x-transition:enter="transition ease-out duration-200"
        x-transition:enter-start="opacity-0 scale-95"
        x-transition:enter-end="opacity-100 scale-100"
@@ -280,50 +292,46 @@
        x-transition:leave-end="opacity-0 scale-95"
        x-cloak>
     
-    <div class="bg-[#111322] border border-[#262a42] rounded-2xl max-w-3xl w-full p-4 md:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
+    <div class="bg-obsidian-900 border border-gold-500/30 rounded-2xl max-w-3xl w-full p-4 md:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
          @click.outside="modalFactores = false">
       
-      <div class="flex justify-between items-center border-b border-[#262a42] pb-3">
+      <div class="flex justify-between items-center border-b border-obsidian-border pb-3">
         <div>
-          <h2 class="text-xs md:text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+          <h2 class="text-xs md:text-sm font-bold text-gold-400 uppercase tracking-wider flex items-center gap-2">
             ⚙️ Configuración Matriz de Factores
           </h2>
-          <p class="text-[10px] md:text-[11px] text-slate-400">Multiplicadores por binomio para el cálculo oficial</p>
+          <p class="text-[10px] md:text-[11px] text-slate-500">Ajusta los multiplicadores por binomio para el cálculo oficial</p>
         </div>
-        <button @click="modalFactores = false" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition text-lg font-bold">
-          ✕
-        </button>
+        <button @click="modalFactores = false" class="text-slate-400 hover:text-white p-1 text-lg font-bold">✕</button>
       </div>
 
       <div x-data="editorFactores()" x-init="cargarFactores()" class="space-y-4">
-        <div class="flex items-center gap-2 bg-[#0b0d19] px-3 py-2 rounded-lg border border-[#262a42]">
+        <div class="flex items-center gap-2 bg-obsidian-950 px-3 py-2 rounded-xl border border-obsidian-border">
           <label class="text-xs font-bold text-slate-300">Origen:</label>
-          <select x-model="origenActivo" class="bg-transparent text-xs font-bold text-amber-400 focus:outline-none cursor-pointer flex-1">
+          <select x-model="origenActivo" class="bg-transparent text-xs font-bold text-gold-400 focus:outline-none cursor-pointer flex-1">
             <template x-for="m in monedas" :key="m">
-              <option :value="m" x-text="m" class="bg-[#111322] text-white"></option>
+              <option :value="m" x-text="m" class="bg-obsidian-900 text-white"></option>
             </template>
           </select>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-3">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
           <template x-for="dest in monedas.filter(m => m !== origenActivo)" :key="dest">
-            <div class="bg-[#0b0d19] border border-[#262a42] rounded-lg p-2.5 space-y-1 hover:border-slate-600 transition">
+            <div class="bg-obsidian-950 border border-obsidian-border rounded-xl p-2.5 space-y-1 hover:border-gold-500/40 transition">
               <span class="text-[10px] font-bold text-slate-400 block font-mono" x-text="origenActivo + ' ➔ ' + dest"></span>
-              <div class="flex items-center gap-1">
-                <input type="number" step="0.001" 
-                       :value="obtenerFactor(origenActivo, dest)" 
-                       @input="actualizarValor(dest, $event.target.value)"
-                       class="w-full bg-[#16192b] border border-slate-700 rounded px-2 py-1 text-xs font-bold text-emerald-400 font-mono text-right focus:outline-none focus:border-amber-400">
-              </div>
+              <input type="number" step="0.001" 
+                     :value="obtenerFactor(origenActivo, dest)" 
+                     @input="actualizarValor(dest, $event.target.value)"
+                     class="w-full bg-obsidian-800 border border-slate-700 rounded-lg px-2 py-1 text-xs font-bold text-emerald-400 font-mono text-right focus:outline-none focus:border-gold-400">
             </div>
           </template>
         </div>
 
-        <div class="flex justify-end gap-2 pt-2 border-t border-[#262a42]">
-          <button @click="modalFactores = false" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-lg transition">
+        <div class="flex justify-end gap-2 pt-3 border-t border-obsidian-border">
+          <button @click="modalFactores = false" class="px-4 py-2 bg-obsidian-800 text-slate-300 font-bold text-xs rounded-xl hover:bg-obsidian-700">
             Cerrar
           </button>
-          <button @click="guardarFactores()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs px-4 py-2 rounded-lg shadow transition flex items-center gap-2">
+          <button @click="guardarFactores()" class="bg-gold-600 hover:bg-gold-500 text-obsidian-950 font-bold text-xs px-4 py-2 rounded-xl shadow transition">
             💾 Guardar Factores (<span x-text="origenActivo"></span>)
           </button>
         </div>
@@ -387,37 +395,38 @@
         
         const grid = document.getElementById('grid-tasas-activas');
         grid.innerHTML = Object.entries(data.tasas || {}).map(([moneda, valor]) => `
-          <div class="bg-[#0b0d19] border border-slate-800/80 rounded-lg p-2 md:p-3 flex flex-col justify-center">
-            <span class="text-[9px] md:text-[10px] font-bold text-indigo-400 font-mono uppercase block">${moneda}</span>
-            <span class="text-sm md:text-lg font-black text-emerald-400 font-mono">${Number(valor).toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
+          <div class="bg-obsidian-950 border border-obsidian-border rounded-xl p-2.5 flex flex-col justify-center">
+            <span class="text-[9px] md:text-[10px] font-bold text-gold-400 font-mono uppercase block">${moneda}</span>
+            <span class="text-sm md:text-base font-black text-emerald-400 font-mono">${Number(valor).toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
           </div>
         `).join('');
       } catch (e) { console.error('Error cargando tasas:', e); }
     }
 
-    async function capturarBorradorHoo() {
+    async function consultarApiBinance() {
       try {
-        const res = await fetch('/api/tasas/fetch-hoo');
+        const res = await fetch('/api/tasas/fetch-binance');
         const data = await res.json();
-        if (!data.success) return alert(data.msg || 'Sin borrador en memoria.');
-        borradorValores = data.rates || {};
-        renderBorrador();
-      } catch (e) { alert('Error conectando a la API.'); }
+        if (data && data.success && data.rates) {
+          borradorValores = data.rates;
+          renderBorrador();
+        }
+      } catch (e) { alert('Error conectando a Binance.'); }
     }
 
     function renderBorrador() {
       const grid = document.getElementById('grid-tasas-borrador');
       grid.innerHTML = Object.entries(borradorValores).map(([moneda, valor]) => `
-        <div class="bg-[#0b0f19] border border-slate-800 rounded-lg p-2 md:p-3">
-          <span class="text-[9px] md:text-[10px] font-bold text-purple-400 uppercase font-mono block mb-1">${moneda}</span>
-          <input type="number" step="any" value="${valor}" onchange="borradorValores['${moneda}'] = parseFloat(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 md:py-1.5 text-xs md:text-sm font-bold text-cyan-300 font-mono focus:outline-none" />
+        <div class="bg-obsidian-950 border border-obsidian-border rounded-xl p-2.5">
+          <span class="text-[9px] md:text-[10px] font-bold text-gold-400 uppercase font-mono block mb-1">${moneda}</span>
+          <input type="number" step="any" value="${valor}" onchange="borradorValores['${moneda}'] = parseFloat(this.value)" class="w-full bg-obsidian-800 border border-slate-700 rounded-lg px-2 py-1 text-xs md:text-sm font-bold text-emerald-400 font-mono focus:outline-none focus:border-gold-500" />
         </div>
       `).join('');
     }
 
     async function publicarTasaOficial() {
       if (Object.keys(borradorValores).length === 0) return alert('Sin valores.');
-      if (!confirm('¿Publicar este lote oficial?')) return;
+      if (!confirm('¿Publicar este lote oficial para NAUPAR?')) return;
 
       try {
         const res = await fetch('/api/tasas/publicar', {
@@ -447,20 +456,20 @@
 
     function dashboardApp() {
       return {
-        tablaActiva: 'imagenes', // INICIA DIRECTAMENTE EN IMÁGENES RAW
+        tablaActiva: 'imagenes', // INICIA DIRECTAMENTE EN IMÁGENES
         modalFactores: false,
         remesas: [],
         imagenes: [],
         
         formatDate(val) {
-          if (!val) return 'Desconocida';
+          if (!val) return 'Reciente';
           let num = Number(val);
           if (!isNaN(num)) {
             if (num < 10000000000) num *= 1000;
             return new Date(num).toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
           }
           let d = new Date(val);
-          return isNaN(d.getTime()) ? 'Fecha Inválida' : d.toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+          return isNaN(d.getTime()) ? 'Reciente' : d.toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
         },
 
         async init() {
