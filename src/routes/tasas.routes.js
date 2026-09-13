@@ -39,7 +39,8 @@ async function initTasasSchema() {
   }
 }
 initTasasSchema();
-// GET /api/tasas/imagenes -> Mapeo exacto sobre el esquema de registros_raw
+
+// 2. GET /api/tasas/imagenes -> Mapeo exacto sobre el esquema de registros_raw
 router.get('/imagenes', async (req, res) => {
   try {
     const result = await pool.query(`
@@ -62,7 +63,6 @@ router.get('/imagenes', async (req, res) => {
       LIMIT 100;
     `);
 
-    // Procesa los nombres exactos para enviar un JSON limpio al Frontend
     const imagenes = result.rows.map(row => ({
       id: row.hash_corto || row.hash_largo,
       hash: row.hash_corto,
@@ -80,20 +80,7 @@ router.get('/imagenes', async (req, res) => {
     res.status(500).json({ error: err.message, imagenes: [] });
   }
 });
-// 2. GET /api/tasas/imagenes -> Consulta directa a registros_raw
-router.get('/imagenes', async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT * FROM registros_raw 
-      ORDER BY id DESC 
-      LIMIT 100;
-    `);
-    res.json(result.rows);
-  } catch (err) {
-    console.error('⚠️ Error consultando registros_raw:', err.message);
-    res.status(500).json({ error: err.message, rows: [] });
-  }
-});
+
 // 3. GET /api/tasas/ultimas -> Tasas oficiales activas en producción
 router.get('/ultimas', async (req, res) => {
   try {
@@ -139,7 +126,6 @@ router.post('/n8n-webhook', async (req, res) => {
       ratesObj = payload;
     }
 
-    // Decodifica mensajes de WhatsApp tipo Regex_
     const textoMsg = payload.conversation || payload.message?.conversation || payload.text || '';
     if (textoMsg.includes('Regex_')) {
       const partes = textoMsg.split('Regex_')[1].split('_');
@@ -158,7 +144,6 @@ router.post('/n8n-webhook', async (req, res) => {
 
     const timestamp = Math.floor(Date.now() / 1000);
 
-    // Reemplaza el borrador anterior en la BD
     await pool.query("DELETE FROM naupar_mercado_tasas WHERE id_tasa = 'BORRADOR';");
 
     for (const [moneda, valor] of Object.entries(ratesObj)) {
@@ -268,7 +253,6 @@ router.post('/publicar', async (req, res) => {
       }
     }
 
-    // Limpia el borrador procesado y notifica
     await pool.query("DELETE FROM naupar_mercado_tasas WHERE id_tasa = 'BORRADOR';");
     await pool.query(`INSERT INTO naupar_notificaciones_tasas (id_tasa) VALUES ($1);`, [codigoTasa]);
 
