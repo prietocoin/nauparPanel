@@ -217,7 +217,7 @@
         <div class="bg-[#111322] border border-[#262a42] rounded-xl overflow-hidden shadow-xl">
           <div class="p-3 border-b border-[#262a42] bg-[#16192b] flex justify-between items-center">
             <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Histórico de Comprobantes NAUPAR (`registros_raw`)</span>
-            <span class="text-[10px] text-slate-500">Filtrado automático por Socio / Empresa / Instancia Kleudis</span>
+            <span class="text-[10px] text-slate-500">Filtrado automático desde la base de datos PostgreSQL</span>
           </div>
 
           <div class="overflow-x-auto">
@@ -234,12 +234,12 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-[#262a42] font-medium text-slate-300">
-                <template x-for="img in imagenes" :key="img.id">
+                <template x-for="img in imagenes" :key="img.id || Math.random()">
                   <tr class="hover:bg-[#16192b] transition-colors">
                     <td class="p-3 font-mono text-amber-400 font-bold" x-text="'#' + img.id"></td>
-                    <td class="p-3 text-slate-400 font-mono" x-text="new Date(img.created_at || img.timestamp || img.fecha).toLocaleString()"></td>
+                    <td class="p-3 text-slate-400 font-mono" x-text="img.created_at || img.timestamp || img.fecha ? new Date(img.created_at || img.timestamp || img.fecha).toLocaleString() : 'N/A'"></td>
                     <td class="p-3 font-bold text-emerald-400" x-text="img.remitente || img.pushname || img.instancia || 'Inversiones Naupar'"></td>
-                    <td class="p-3 font-mono text-slate-400 text-[11px]" x-text="img.remotejid || img.group_id || 'N/A'"></td>
+                    <td class="p-3 font-mono text-slate-400 text-[11px]" x-text="img.remotejid || img.group_id || img.jid || 'N/A'"></td>
                     <td class="p-3 text-white truncate max-w-[200px]" x-text="img.caption || img.texto || img.message || 'Sin texto'"></td>
                     <td class="p-3 font-bold text-white" x-text="Number(img.monto || 0).toFixed(2)"></td>
                     <td class="p-3">
@@ -254,11 +254,9 @@
                     </td>
                   </tr>
                 </template>
-                <template x-if="imagenes.length === 0">
-                  <tr>
-                    <td colspan="7" class="p-8 text-center text-slate-500 italic">No se encontraron registros de NAUPAR en la tabla registros_raw...</td>
-                  </tr>
-                </template>
+                <tr x-show="imagenes.length === 0">
+                  <td colspan="7" class="p-8 text-center text-slate-500 italic">No se encontraron registros de NAUPAR en la tabla registros_raw...</td>
+                </tr>
               </tbody>
             </table>
           </div>
