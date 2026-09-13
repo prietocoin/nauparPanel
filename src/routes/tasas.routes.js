@@ -4,7 +4,7 @@ const db = require('../config/db');
 
 const pool = db.pool || db;
 
-// 1. Inicialización de tabla única para NAUPAR
+// 1. Inicialización de tablas en PostgreSQL
 async function initTasasSchema() {
   try {
     await pool.query(`
@@ -23,10 +23,17 @@ async function initTasasSchema() {
         creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
+      CREATE TABLE IF NOT EXISTS naupar_factores_matriz (
+        moneda_origen VARCHAR(10) NOT NULL,
+        moneda_destino VARCHAR(10) NOT NULL,
+        factor NUMERIC(6, 4) NOT NULL DEFAULT 0.9000,
+        PRIMARY KEY (moneda_origen, moneda_destino)
+      );
+
       CREATE INDEX IF NOT EXISTS idx_naupar_mercado_tasas_id ON naupar_mercado_tasas(id_tasa);
       CREATE INDEX IF NOT EXISTS idx_naupar_mercado_tasas_ts ON naupar_mercado_tasas(timestamp ASC);
     `);
-    console.log('✅ Tablas independientes de NAUPAR verificadas en PostgreSQL.');
+    console.log('✅ Tablas independientes de NAUPAR y Factores verificadas en PostgreSQL.');
   } catch (err) {
     console.error('⚠️ Error al inicializar tablas NAUPAR:', err.message);
   }
@@ -130,17 +137,14 @@ router.get('/fetch-hoo', async (req, res) => {
     ratesRes.rows.forEach(r => {
       ratesObj[r.moneda.toUpperCase()] = parseFloat(r.tasa_base);
     });
-// Agregar dentro de initTasasSchema()
-await pool.query(`
-  CREATE TABLE IF NOT EXISTS naupar_factores_matriz (
-    moneda_origen VARCHAR(10) NOT NULL,
-    moneda_destino VARCHAR(10) NOT NULL,
-    factor NUMERIC(6, 4) NOT NULL DEFAULT 0.9000,
-    PRIMARY KEY (moneda_origen, moneda_destino)
-  );
-`);
 
-// GET /api/tasas/factores -> Carga la matriz completa
+    return res.json({ success: true, rates: ratesObj });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 5. GET /api/tasas/factores -> Carga la matriz completa de factores
 router.get('/factores', async (req, res) => {
   try {
     const result = await pool.query('SELECT moneda_origen, moneda_destino, factor FROM naupar_factores_matriz;');
@@ -155,10 +159,14 @@ router.get('/factores', async (req, res) => {
   }
 });
 
-// POST /api/tasas/factores -> Guarda cambios de una moneda origen
+// 6. POST /api/tasas/factores -> Guarda cambios de factores por moneda origen
 router.post('/factores', async (req, res) => {
   try {
-    const { moneda_origen, factores } = req.body; // ej: origen: 'PEN', factores: { VES: 0.93, COP: 0.90 }
+    const { moneda_origen, factores } = req.body;
+    if (!moneda_origen || !factores) {
+      return res.status(400).json({ success: false, message: 'Faltan parámetros requeridos.' });
+    }
+
     for (const [destino, val] of Object.entries(factores)) {
       await pool.query(`
         INSERT INTO naupar_factores_matriz (moneda_origen, moneda_destino, factor)
@@ -171,13 +179,8 @@ router.post('/factores', async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
-    return res.json({ success: true, rates: ratesObj });
-  } catch (err) {
-    return res.status(500).json({ success: false, error: err.message });
-  }
-});
 
-// 5. POST /api/tasas/publicar -> Emite el lote oficial (T001, T002...)
+// 7. POST /api/tasas/publicar -> Emite el lote oficial (T001, T002...)
 router.post('/publicar', async (req, res) => {
   try {
     const { id_tasa, tasas } = req.body;
@@ -221,7 +224,7 @@ router.post('/publicar', async (req, res) => {
   }
 });
 
-// 6. POST /api/tasas/reenviar
+// 8. POST /api/tasas/reenviar
 router.post('/reenviar', async (req, res) => {
   try {
     const { id_tasa } = req.body;
