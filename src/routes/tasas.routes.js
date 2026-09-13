@@ -4,7 +4,42 @@ const db = require('../config/db');
 
 const pool = db.pool || db;
 
-// GET /api/tasas/imagenes -> Mapeo directo de registros_raw
+// Inicializador automático de tablas NAUPAR en PostgreSQL
+async function initTasasSchema() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS naupar_mercado_tasas (
+        id SERIAL PRIMARY KEY,
+        id_tasa VARCHAR(20) NOT NULL,
+        moneda VARCHAR(10) NOT NULL,
+        tasa_base NUMERIC(18, 6) NOT NULL,
+        timestamp BIGINT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS naupar_notificaciones_tasas (
+        id SERIAL PRIMARY KEY,
+        id_tasa VARCHAR(50) NOT NULL,
+        creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS naupar_factores_matriz (
+        moneda_origen VARCHAR(10) NOT NULL,
+        moneda_destino VARCHAR(10) NOT NULL,
+        factor NUMERIC(6, 4) NOT NULL DEFAULT 0.9000,
+        PRIMARY KEY (moneda_origen, moneda_destino)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_naupar_mercado_tasas_id ON naupar_mercado_tasas(id_tasa);
+      CREATE INDEX IF NOT EXISTS idx_naupar_mercado_tasas_ts ON naupar_mercado_tasas(timestamp ASC);
+    `);
+  } catch (err) {
+    console.error('⚠️ Error al inicializar tablas NAUPAR:', err.message);
+  }
+}
+initTasasSchema();
+
+// 1. GET /api/tasas/imagenes -> Mapeo directo de registros_raw
 router.get('/imagenes', async (req, res) => {
   try {
     const result = await pool.query(`
@@ -41,12 +76,11 @@ router.get('/imagenes', async (req, res) => {
   }
 });
 
-// GET /api/tasas/fetch-binance -> Extracción en vivo Binance P2P exclusiva para las 13 monedas NAUPAR
+// 2. GET /api/tasas/fetch-binance -> Extracción P2P exclusiva para las 13 monedas de NAUPAR
 router.get('/fetch-binance', async (req, res) => {
   try {
     const fiatsP2P = ['CLP', 'PEN', 'COP', 'MXN', 'VES', 'EUR', 'ARS', 'PYG'];
 
-    // Objeto objetivo estricto según especificación
     const ratesObj = {
       USD: 1.0,
       USDT: 1.0,
@@ -63,7 +97,6 @@ router.get('/fetch-binance', async (req, res) => {
       EBCV: ''
     };
 
-    // Consulta en paralelo a Binance P2P
     await Promise.all(fiatsP2P.map(async (fiat) => {
       try {
         const response = await fetch('https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search', {
@@ -96,7 +129,7 @@ router.get('/fetch-binance', async (req, res) => {
   }
 });
 
-// GET /api/tasas/ultimas -> Tasas activas en producción
+// 3. GET /api/tasas/ultimas -> Tasas activas en producción
 router.get('/ultimas', async (req, res) => {
   try {
     const lastLotRes = await pool.query(`
@@ -126,7 +159,7 @@ router.get('/ultimas', async (req, res) => {
   }
 });
 
-// GET & POST /api/tasas/factores
+// 4. GET & POST /api/tasas/factores
 router.get('/factores', async (req, res) => {
   try {
     const result = await pool.query('SELECT moneda_origen, moneda_destino, factor FROM naupar_factores_matriz;');
@@ -157,7 +190,7 @@ router.post('/factores', async (req, res) => {
   }
 });
 
-// POST /api/tasas/publicar
+// 5. POST /api/tasas/publicar -> Publica lote y activa trigger de n8n
 router.post('/publicar', async (req, res) => {
   try {
     const { id_tasa, tasas } = req.body;
@@ -185,21 +218,27 @@ router.post('/publicar', async (req, res) => {
       }
     }
 
+    // Disparador directo para n8n
     await pool.query(`INSERT INTO naupar_notificaciones_tasas (id_tasa) VALUES ($1);`, [codigoTasa]);
+    
     res.json({ success: true, id_tasa: codigoTasa, message: `Tasa ${codigoTasa} publicada` });
   } catch (err) {
+    console.error('⚠️ Error al publicar tasa:', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// POST /api/tasas/reenviar
+// 6. POST /api/tasas/reenviar -> Notifica nuevamente a n8n
 router.post('/reenviar', async (req, res) => {
   try {
     const lastRes = await pool.query("SELECT id_tasa FROM naupar_mercado_tasas WHERE id_tasa != 'BORRADOR' ORDER BY id DESC LIMIT 1;");
     const codigoTasa = lastRes.rows[0]?.id_tasa || 'T001';
+    
     await pool.query(`INSERT INTO naupar_notificaciones_tasas (id_tasa) VALUES ($1);`, [codigoTasa]);
+    
     res.json({ success: true, id_tasa: codigoTasa, message: `Reenvío activado para ${codigoTasa}` });
   } catch (err) {
+    console.error('⚠️ Error al reenviar tasa:', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
