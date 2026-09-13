@@ -39,18 +39,45 @@ async function initTasasSchema() {
   }
 }
 initTasasSchema();
-// GET /api/tasas/imagenes -> Consulta amplia en registros_raw
+// GET /api/tasas/imagenes -> Mapeo exacto sobre el esquema de registros_raw
 router.get('/imagenes', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT * FROM registros_raw 
-      WHERE registros_raw::text ILIKE '%naupar%'
-         OR registros_raw::text ILIKE '%kleudis%'
-      ORDER BY id DESC LIMIT 100;
+      SELECT 
+        hash_corto,
+        hash_largo,
+        grupo_raw,
+        usuario_raw,
+        nombre_push,
+        caption,
+        url_imagen,
+        timestamp_msg,
+        instancia,
+        estado
+      FROM registros_raw 
+      WHERE LOWER(COALESCE(instancia, '')) LIKE '%kleudis%'
+         OR LOWER(COALESCE(instancia, '')) LIKE '%naupar%'
+         OR LOWER(COALESCE(nombre_push, '')) LIKE '%naupar%'
+      ORDER BY timestamp_msg DESC NULLS LAST
+      LIMIT 100;
     `);
-    res.json(result.rows);
+
+    // Procesa los nombres exactos para enviar un JSON limpio al Frontend
+    const imagenes = result.rows.map(row => ({
+      id: row.hash_corto || row.hash_largo,
+      hash: row.hash_corto,
+      fecha: row.timestamp_msg,
+      remitente: row.nombre_push || row.usuario_raw || 'Inversiones Naupar',
+      instancia: row.instancia || 'KLEUDIS',
+      remotejid: row.grupo_raw || 'Privado',
+      caption: row.caption || 'Sin texto...',
+      url: row.url_imagen || ''
+    }));
+
+    res.json(imagenes);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('⚠️ Error consultando registros_raw:', err.message);
+    res.status(500).json({ error: err.message, imagenes: [] });
   }
 });
 // 2. GET /api/tasas/imagenes -> Consulta directa a registros_raw
