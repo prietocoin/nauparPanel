@@ -44,7 +44,11 @@
         <button @click="cambiarTabla('registros')" :class="tablaActiva === 'registros' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
           <span>📋 Visor de Remesas</span>
         </button>
-
+       
+        <button onclick="navegarA('sec-cartelera-tasas')" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg text-slate-300 hover:bg-slate-800/60 transition">
+          <span>📊</span> Baúl & Cartelera Tasas
+        </button>
+        
         <div class="py-2"><hr class="border-[#262a42]"></div>
         <p class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Revisión de Bases</p>
 
@@ -145,6 +149,110 @@
         </div>
       </div>
 
+      <div id="sec-cartelera-tasas" class="space-y-6 hidden">
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-4">
+    <div>
+      <h1 class="text-xl font-bold text-white tracking-wide">Baúl & Cartelera de Tasas</h1>
+      <p class="text-xs text-slate-400">Control de mercado y emisión oficial de tasas NAUPAR</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button onclick="reenviarTasaActual()" class="bg-amber-600/20 text-amber-400 border border-amber-500/40 text-xs font-bold px-3 py-2 rounded-lg hover:bg-amber-600/30 transition">
+        🔄 Reenviar Tasa Actual
+      </button>
+      <button onclick="capturarBorradorHoo()" class="bg-indigo-600/20 text-indigo-300 border border-indigo-500/40 text-xs font-bold px-3 py-2 rounded-lg hover:bg-indigo-600/30 transition">
+        ⚡ Conectar Hoo API
+      </button>
+    </div>
+  </div>
+
+  <div class="bg-[#131b2e] border border-slate-800 rounded-xl p-5 shadow-xl space-y-4">
+    <div class="flex justify-between items-center border-b border-slate-800/80 pb-3">
+      <h2 class="text-xs font-bold text-slate-200 tracking-wider uppercase">Tasas Activas en Producción</h2>
+      <span id="lbl-lote-activo" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[11px] font-extrabold px-3 py-1 rounded-full">Lote Activo: T000</span>
+    </div>
+    <div id="grid-tasas-activas" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3"></div>
+  </div>
+
+  <div class="bg-[#131b2e] border border-slate-800 rounded-xl p-5 shadow-xl space-y-4">
+    <div class="flex justify-between items-center border-b border-slate-800/80 pb-3">
+      <h2 class="text-xs font-bold text-slate-300 tracking-wider uppercase">Borrador Capturado (Paso Previo)</h2>
+    </div>
+    <div id="grid-tasas-borrador" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3"></div>
+    <div class="flex justify-end pt-2">
+      <button onclick="publicarTasaOficial()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-5 py-2.5 rounded-lg shadow-lg transition">
+        💸 Publicar Tasa Oficial a Producción
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let borradorValores = {};
+
+  async function cargarTasasActivas() {
+    try {
+      const res = await fetch('/api/tasas/ultimas');
+      const data = await res.json();
+      document.getElementById('lbl-lote-activo').innerText = `Lote Activo: ${data.id_tasa || 'T001'}`;
+      
+      const grid = document.getElementById('grid-tasas-activas');
+      grid.innerHTML = Object.entries(data.tasas || {}).map(([moneda, valor]) => `
+        <div class="bg-[#0b0f19] border border-slate-800/80 rounded-lg p-3">
+          <span class="text-[10px] font-bold text-indigo-400 font-mono uppercase block">${moneda}</span>
+          <span class="text-lg font-black text-emerald-400 font-mono">${Number(valor).toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
+        </div>
+      `).join('');
+    } catch (e) { console.error('Error cargando tasas:', e); }
+  }
+
+  async function capturarBorradorHoo() {
+    try {
+      const res = await fetch('/api/tasas/fetch-hoo');
+      const data = await res.json();
+      if (!data.success) return alert(data.msg || 'Sin borrador en memoria.');
+      borradorValores = data.rates || {};
+      renderBorrador();
+    } catch (e) { alert('Error conectando a la API.'); }
+  }
+
+  function renderBorrador() {
+    const grid = document.getElementById('grid-tasas-borrador');
+    grid.innerHTML = Object.entries(borradorValores).map(([moneda, valor]) => `
+      <div class="bg-[#0b0f19] border border-slate-800 rounded-lg p-3">
+        <span class="text-[10px] font-bold text-purple-400 uppercase font-mono block mb-1">${moneda}</span>
+        <input type="number" step="any" value="${valor}" onchange="borradorValores['${moneda}'] = parseFloat(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-sm font-bold text-cyan-300 font-mono focus:outline-none" />
+      </div>
+    `).join('');
+  }
+
+  async function publicarTasaOficial() {
+    if (Object.keys(borradorValores).length === 0) return alert('No hay valores para publicar.');
+    if (!confirm('¿Deseas publicar este lote oficial para NAUPAR?')) return;
+
+    try {
+      const res = await fetch('/api/tasas/publicar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tasas: borradorValores })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message);
+        cargarTasasActivas();
+      }
+    } catch (e) { alert('Error al publicar.'); }
+  }
+
+  async function reenviarTasaActual() {
+    try {
+      const res = await fetch('/api/tasas/reenviar', { method: 'POST', body: JSON.stringify({}) });
+      const data = await res.json();
+      if (data.success) alert(data.message);
+    } catch (e) { alert('Error reenviando tasa.'); }
+  }
+
+  cargarTasasActivas();
+</script>
       <!-- VISTA REGISTROS INDIVIDUALES -->
       <div x-show="tablaActiva === 'registros'" class="space-y-4">
         <div class="bg-[#111322] border border-[#262a42] rounded-xl overflow-hidden shadow-xl">
