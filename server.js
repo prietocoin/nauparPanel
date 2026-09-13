@@ -2,15 +2,14 @@ require('dotenv').config();
 const express = require('express');
 const { inicializarBD } = require('./src/config/db');
 
-// Importación de Rutas
+// Rutas del sistema
 const calculatorRoutes = require('./src/routes/calculator.routes');
 const recordsRoutes = require('./src/routes/records.routes');
 const tasasRoutes = require('./src/routes/tasas.routes');
 
-// Inicialización de App Express
 const app = express();
 
-// Configuración de CORS nativo (sin librerías externas)
+// Manejo de CORS nativo (Sin librerías npm adicionales)
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
@@ -22,7 +21,7 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.static('public'));
 
-// Registro de Rutas
+// Registro de APIs
 app.use('/api/tasas', tasasRoutes);
 app.use('/api', calculatorRoutes);
 app.use('/api', recordsRoutes);
