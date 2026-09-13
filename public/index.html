@@ -41,18 +41,19 @@
       </div>
 
       <nav class="space-y-1.5 text-xs font-semibold">
+        <!-- Imágenes ahora es el primero -->
+        <button @click="cambiarTabla('imagenes')" :class="tablaActiva === 'imagenes' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
+          <span class="text-base">🖼️</span> <span>Imágenes RAW</span>
+        </button>
+        
+        <div class="py-2"><hr class="border-[#262a42]"></div>
+
         <button @click="cambiarTabla('registros')" :class="tablaActiva === 'registros' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
           <span class="text-base">📋</span> <span>Remesas</span>
         </button>
         
         <button @click="cambiarTabla('cartelera_tasas')" :class="tablaActiva === 'cartelera_tasas' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
           <span class="text-base">📊</span> <span>Tasas</span>
-        </button>
-        
-        <div class="py-2"><hr class="border-[#262a42]"></div>
-
-        <button @click="cambiarTabla('imagenes')" :class="tablaActiva === 'imagenes' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
-          <span class="text-base">🖼️</span> <span>Imágenes RAW</span>
         </button>
       </nav>
     </div>
@@ -64,6 +65,11 @@
 
   <!-- NAVEGACIÓN INFERIOR (Solo Móvil) -->
   <nav class="md:hidden fixed bottom-0 left-0 w-full bg-[#111322] border-t border-[#262a42] flex justify-around items-center pb-2 pt-2 px-2 z-40 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.3)]">
+    <!-- Imágenes ahora es el primero -->
+    <button @click="cambiarTabla('imagenes')" :class="tablaActiva === 'imagenes' ? 'text-amber-400' : 'text-slate-500 hover:text-slate-300'" class="flex flex-col items-center flex-1 transition-colors">
+      <span class="text-xl mb-1">🖼️</span>
+      <span class="text-[10px] font-bold">Imágenes</span>
+    </button>
     <button @click="cambiarTabla('registros')" :class="tablaActiva === 'registros' ? 'text-amber-400' : 'text-slate-500 hover:text-slate-300'" class="flex flex-col items-center flex-1 transition-colors">
       <span class="text-xl mb-1">📋</span>
       <span class="text-[10px] font-bold">Remesas</span>
@@ -71,10 +77,6 @@
     <button @click="cambiarTabla('cartelera_tasas')" :class="tablaActiva === 'cartelera_tasas' ? 'text-amber-400' : 'text-slate-500 hover:text-slate-300'" class="flex flex-col items-center flex-1 transition-colors">
       <span class="text-xl mb-1">📊</span>
       <span class="text-[10px] font-bold">Tasas</span>
-    </button>
-    <button @click="cambiarTabla('imagenes')" :class="tablaActiva === 'imagenes' ? 'text-amber-400' : 'text-slate-500 hover:text-slate-300'" class="flex flex-col items-center flex-1 transition-colors">
-      <span class="text-xl mb-1">🖼️</span>
-      <span class="text-[10px] font-bold">Imágenes</span>
     </button>
   </nav>
 
@@ -88,7 +90,7 @@
           <img src="/logo.png" alt="NAUPAR" class="h-6 object-contain">
         </div>
         <div>
-          <h1 class="text-sm md:text-lg font-bold text-white capitalize leading-tight" x-text="tablaActiva === 'registros' ? 'Visor de Remesas' : (tablaActiva === 'cartelera_tasas' ? 'Baúl de Tasas' : 'Comprobantes RAW')"></h1>
+          <h1 class="text-sm md:text-lg font-bold text-white capitalize leading-tight" x-text="tablaActiva === 'imagenes' ? 'Comprobantes RAW' : (tablaActiva === 'registros' ? 'Visor de Remesas' : 'Baúl de Tasas')"></h1>
           <p class="text-[10px] md:text-xs text-slate-400 hidden sm:block">Auditoría pasiva en tiempo real para WhatsApp</p>
         </div>
       </div>
@@ -100,6 +102,72 @@
 
     <!-- Main Body -->
     <main class="p-3 md:p-4 space-y-4 flex-1 w-full max-w-[100vw]">
+
+      <!-- VISTA IMÁGENES RAW (CARDS GRID MINIMALISTA) -->
+      <div x-show="tablaActiva === 'imagenes'" class="space-y-4 w-full" x-cloak>
+        <div class="bg-[#111322] border border-[#262a42] rounded-xl overflow-hidden shadow-xl p-4 md:p-5">
+          
+          <div class="flex justify-between items-center border-b border-[#262a42] pb-3 mb-5">
+            <h2 class="text-[11px] md:text-xs font-bold text-amber-400 uppercase tracking-wider">Histórico RAW</h2>
+            <div class="flex items-center gap-3">
+              <span class="text-[9px] md:text-[10px] text-slate-500 font-mono hidden sm:block">PostgreSQL Automático</span>
+              <button @click="init()" class="text-slate-400 hover:text-white transition-colors" title="Actualizar">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- GRID DE CARDS: Minimalista -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-5">
+            
+            <template x-for="img in imagenes" :key="img.id || Math.random()">
+              <div class="bg-[#16192b] border border-[#262a42] rounded-xl overflow-hidden hover:border-slate-500 hover:shadow-lg hover:shadow-black/40 transition-all flex flex-col group relative">
+                
+                <!-- PORTADA IMAGEN (Interactiva) -->
+                <div class="h-40 md:h-48 w-full bg-[#0b0d19] relative border-b border-[#262a42]">
+                  <template x-if="img.url">
+                    <a :href="img.url" target="_blank" class="block w-full h-full p-2 md:p-3 cursor-pointer">
+                      <img :src="img.url" class="w-full h-full object-contain drop-shadow-md group-hover:scale-105 transition-transform duration-300" alt="Comprobante" />
+                    </a>
+                  </template>
+                  <template x-if="!img.url">
+                    <div class="w-full h-full flex flex-col items-center justify-center text-slate-600 font-mono text-xs">
+                      <span class="text-2xl mb-1">📄</span> Sin foto
+                    </div>
+                  </template>
+
+                  <!-- BADGE HASH SUTIL -->
+                  <div class="absolute top-2 left-2 bg-[#111322]/80 backdrop-blur text-amber-400 font-mono text-[9px] md:text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm border border-[#262a42]" x-text="'#' + (img.hash || img.id)"></div>
+                </div>
+
+                <!-- DETALLES CARD -->
+                <div class="p-3 md:p-4 flex-1 flex flex-col gap-1.5">
+                  <!-- Cabecera: Remitente y Fecha -->
+                  <div class="flex justify-between items-start gap-2">
+                    <div class="font-bold text-emerald-400 text-[11px] md:text-xs truncate flex-1" x-text="img.remitente" :title="img.remitente"></div>
+                    <div class="text-[8px] md:text-[9px] text-slate-500 font-mono whitespace-nowrap pt-0.5" x-text="formatDate(img.fecha)"></div>
+                  </div>
+
+                  <!-- JID Grupo -->
+                  <div class="text-[9px] md:text-[10px] text-slate-500 font-mono truncate" x-text="img.remotejid" :title="img.remotejid"></div>
+
+                  <!-- CAJA DE TEXTO (CAPTION) - Limpio con Line Clamp -->
+                  <div class="mt-2 text-[9px] md:text-[10px] text-slate-300 font-mono line-clamp-2 leading-relaxed" x-text="img.caption || 'Sin texto...'" :title="img.caption"></div>
+                </div>
+
+              </div>
+            </template>
+
+            <!-- ESTADO VACÍO -->
+            <template x-if="imagenes.length === 0">
+              <div class="col-span-full py-16 text-center text-slate-500 font-mono text-sm bg-[#16192b] border border-dashed border-[#262a42] rounded-xl">
+                Cargando comprobantes RAW o base de datos vacía...
+              </div>
+            </template>
+
+          </div>
+        </div>
+      </div>
 
       <!-- VISTA REMESAS -->
       <div x-show="tablaActiva === 'registros'" class="space-y-4" x-cloak>
@@ -194,79 +262,6 @@
             <button onclick="publicarTasaOficial()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-5 py-2.5 rounded-lg shadow-lg transition flex items-center gap-1.5">
               💸 Publicar Tasa Oficial a Producción
             </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- VISTA IMÁGENES RAW (CARDS GRID) -->
-      <div x-show="tablaActiva === 'imagenes'" class="space-y-4 w-full" x-cloak>
-        <div class="bg-[#111322] border border-[#262a42] rounded-xl overflow-hidden shadow-xl p-4">
-          <div class="flex justify-between items-center border-b border-[#262a42] pb-3 mb-4">
-            <h2 class="text-[11px] md:text-xs font-bold text-amber-400 uppercase tracking-wider">Histórico RAW</h2>
-            <div class="flex gap-2">
-              <span class="text-[9px] md:text-[10px] text-slate-500 font-mono self-center">PostgreSQL Automático</span>
-              <button @click="init()" class="bg-[#16192b] hover:bg-slate-800 border border-[#262a42] text-white px-2 py-1 rounded text-xs transition">🔄</button>
-            </div>
-          </div>
-
-          <!-- GRID DE CARDS: 1 col móvil, 2 tablet, 4 lg, 5 xl -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            
-            <template x-for="img in imagenes" :key="img.id || Math.random()">
-              <div class="bg-[#16192b] border border-[#262a42] rounded-xl overflow-hidden shadow-lg hover:border-slate-500 transition-all flex flex-col group">
-                
-                <!-- PORTADA IMAGEN -->
-                <div class="h-44 w-full bg-[#0b0d19] relative">
-                  <template x-if="img.url">
-                    <a :href="img.url" target="_blank" class="block w-full h-full p-2">
-                      <img :src="img.url" class="w-full h-full object-contain rounded drop-shadow-md group-hover:scale-105 transition-transform duration-300" alt="Comprobante" />
-                    </a>
-                  </template>
-                  <template x-if="!img.url">
-                    <div class="w-full h-full flex flex-col items-center justify-center text-slate-600 font-mono text-xs">
-                      <span class="text-2xl mb-1">📄</span> Sin foto
-                    </div>
-                  </template>
-
-                  <!-- BADGE HASH -->
-                  <div class="absolute top-2 left-2 bg-black/80 backdrop-blur text-amber-400 font-mono text-[10px] font-bold px-2 py-1 rounded border border-slate-700/50 shadow-lg" x-text="'#' + (img.hash || img.id)"></div>
-                </div>
-
-                <!-- DETALLES CARD -->
-                <div class="p-3 flex-1 flex flex-col gap-2.5">
-                  <div class="flex justify-between items-start">
-                    <div class="text-[10px] text-slate-400 font-mono bg-slate-900/50 px-1.5 py-0.5 rounded" x-text="formatDate(img.fecha)"></div>
-                  </div>
-
-                  <div>
-                    <div class="font-bold text-emerald-400 text-[11px] uppercase truncate" x-text="img.remitente"></div>
-                    <div class="text-[9px] text-cyan-400 font-mono" x-text="'Instancia: ' + img.instancia"></div>
-                    <div class="text-[9px] text-slate-500 font-mono truncate mt-0.5" x-text="img.remotejid" :title="img.remotejid"></div>
-                  </div>
-
-                  <!-- CAJA DE TEXTO (CAPTION) -->
-                  <div class="bg-[#0b0d19] border border-[#262a42] rounded p-2 text-[10px] text-slate-300 h-14 overflow-y-auto custom-scrollbar leading-tight font-mono" x-text="img.caption || 'Sin texto...'"></div>
-
-                  <!-- ACCIÓN -->
-                  <div class="mt-auto pt-2">
-                    <template x-if="img.url">
-                      <a :href="img.url" target="_blank" class="w-full flex justify-center items-center gap-1.5 bg-amber-600/20 text-amber-400 border border-amber-500/40 hover:bg-amber-600/40 font-bold py-1.5 rounded text-[11px] transition">
-                        <span>🖼️</span> Ver Imagen Completa ↗
-                      </a>
-                    </template>
-                  </div>
-                </div>
-
-              </div>
-            </template>
-
-            <!-- ESTADO VACÍO -->
-            <template x-if="imagenes.length === 0">
-              <div class="col-span-full py-12 text-center text-slate-500 italic bg-[#16192b] border border-dashed border-[#262a42] rounded-xl">
-                Cargando comprobantes RAW o base de datos vacía...
-              </div>
-            </template>
-
           </div>
         </div>
       </div>
@@ -452,26 +447,25 @@
 
     function dashboardApp() {
       return {
-        tablaActiva: 'registros',
+        tablaActiva: 'imagenes', // INICIA DIRECTAMENTE EN IMÁGENES RAW
         modalFactores: false,
         remesas: [],
         imagenes: [],
         
-        // Formateador robusto para manejar timestamps de 10 dígitos o strings
         formatDate(val) {
           if (!val) return 'Desconocida';
           let num = Number(val);
           if (!isNaN(num)) {
-            if (num < 10000000000) num *= 1000; // Convierte de segundos a milisegundos si aplica
-            return new Date(num).toLocaleString();
+            if (num < 10000000000) num *= 1000;
+            return new Date(num).toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
           }
           let d = new Date(val);
-          return isNaN(d.getTime()) ? 'Fecha Inválida' : d.toLocaleString();
+          return isNaN(d.getTime()) ? 'Fecha Inválida' : d.toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
         },
 
         async init() {
-          await this.cargarRemesas();
           await this.cargarImagenes();
+          await this.cargarRemesas();
           cargarTasasActivas();
         },
         async cambiarTabla(nombre) {
