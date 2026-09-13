@@ -39,7 +39,20 @@ async function initTasasSchema() {
   }
 }
 initTasasSchema();
-
+// GET /api/imagenes -> Consulta comprobantes de NAUPAR desde comprobantes_test
+router.get('/imagenes', async (req, res) => {
+  try {
+    const pool = db.pool || db;
+    const result = await pool.query(`
+      SELECT * FROM comprobantes_test 
+      WHERE LOWER(COALESCE(socio, empresa, '')) LIKE '%naupar%'
+      ORDER BY id DESC;
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // 2. GET /api/tasas/ultimas -> Tasas oficiales activas en producción
 router.get('/ultimas', async (req, res) => {
   try {
