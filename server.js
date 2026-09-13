@@ -1,32 +1,38 @@
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
 const { inicializarBD } = require('./src/config/db');
 
-// 1. Importación de Rutas
+// Importación de Rutas
 const calculatorRoutes = require('./src/routes/calculator.routes');
 const recordsRoutes = require('./src/routes/records.routes');
 const tasasRoutes = require('./src/routes/tasas.routes');
 
-// 2. Inicialización de App Express
+// Inicialización de App Express
 const app = express();
 
-// 3. Middlewares
-app.use(cors());
+// Configuración de CORS nativo (sin librerías externas)
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
+
 app.use(express.json());
 app.use(express.static('public'));
 
-// 4. Registro de Rutas
+// Registro de Rutas
 app.use('/api/tasas', tasasRoutes);
 app.use('/api', calculatorRoutes);
 app.use('/api', recordsRoutes);
 
-// 5. Arranque de Base de Datos y Servidor
+// Arranque
 inicializarBD().then(() => {
   const PORT = process.env.PORT || 8080;
   app.listen(PORT, () => {
     console.log(`🚀 Servidor modular NAUPAR ejecutándose en puerto ${PORT}`);
   });
 }).catch((err) => {
-  console.error('❌ Error fatal al inicializar la base de datos:', err.message);
+  console.error('❌ Error al inicializar la BD:', err.message);
 });
