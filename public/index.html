@@ -44,29 +44,25 @@
 </head>
 <body class="bg-obsidian-950 text-slate-200 font-sans antialiased min-h-screen flex flex-col md:flex-row" x-data="dashboardApp()" x-init="init()">
 
-  <!-- SIDEBAR DESKTOP (Negro / Dorado) -->
+  <!-- SIDEBAR DESKTOP -->
   <aside class="w-64 bg-obsidian-900 border-r border-obsidian-border p-4 flex-col justify-between shrink-0 hidden md:flex h-screen sticky top-0 z-40">
     <div>
-      <img src="/logo.png" alt="Inversiones NAUPAR" 
-     class="w-full max-h-14 object-contain filter drop-shadow-[0_0_2px_rgba(255,255,255,0.9)] drop-shadow-[0_0_8px_rgba(212,175,55,0.6)]">
-      <div class="px-3 py-3 mb-6 border border-gold-500/20 bg-gradient-to-b from-obsidian-800 to-obsidian-950 rounded-xl shadow-xl flex items-center justify-center">
-        <img src="/logo.png" alt="Inversiones NAUPAR" class="w-full max-h-14 object-contain filter drop-shadow">
+      <!-- Contenedor Claro con Resplandor Dorado para el Logo -->
+      <div class="px-3 py-2.5 mb-6 border border-gold-500/40 bg-gradient-to-b from-[#f8fafc] to-[#e2e8f0] rounded-xl shadow-[0_0_15px_rgba(212,175,55,0.25)] flex items-center justify-center">
+        <img src="/logo.png" alt="Inversiones NAUPAR" class="w-full max-h-12 object-contain">
       </div>
 
       <nav class="space-y-1.5 text-xs font-medium">
-        <!-- 1. IMÁGENES PRIMERO -->
         <button @click="cambiarTabla('imagenes')" :class="tablaActiva === 'imagenes' ? 'bg-gold-500/10 text-gold-400 border border-gold-500/30 font-bold shadow-lg shadow-gold-500/5' : 'text-slate-400 hover:bg-obsidian-800 hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all">
           <span class="text-base">🖼️</span> <span>Imágenes RAW</span>
         </button>
 
         <div class="py-1.5"><hr class="border-obsidian-border"></div>
         
-        <!-- 2. REMESAS -->
         <button @click="cambiarTabla('registros')" :class="tablaActiva === 'registros' ? 'bg-gold-500/10 text-gold-400 border border-gold-500/30 font-bold shadow-lg shadow-gold-500/5' : 'text-slate-400 hover:bg-obsidian-800 hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all">
           <span class="text-base">📋</span> <span>Remesas</span>
         </button>
         
-        <!-- 3. TASAS -->
         <button @click="cambiarTabla('cartelera_tasas')" :class="tablaActiva === 'cartelera_tasas' ? 'bg-gold-500/10 text-gold-400 border border-gold-500/30 font-bold shadow-lg shadow-gold-500/5' : 'text-slate-400 hover:bg-obsidian-800 hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all">
           <span class="text-base">📊</span> <span>Tasas</span>
         </button>
@@ -78,7 +74,7 @@
     </div>
   </aside>
 
-  <!-- NAVEGACIÓN INFERIOR MÓVIL (Black & Gold) -->
+  <!-- NAVEGACIÓN INFERIOR MÓVIL -->
   <nav class="md:hidden fixed bottom-0 left-0 w-full bg-obsidian-900/95 backdrop-blur-md border-t border-obsidian-border flex justify-around items-center pb-2 pt-2 px-2 z-40 shadow-[0_-10px_20px_rgba(0,0,0,0.8)]">
     <button @click="cambiarTabla('imagenes')" :class="tablaActiva === 'imagenes' ? 'text-gold-400' : 'text-slate-500'" class="flex flex-col items-center flex-1 transition-colors">
       <span class="text-xl mb-0.5">🖼️</span>
@@ -100,7 +96,7 @@
     <!-- Header Principal -->
     <header class="bg-obsidian-900 border-b border-obsidian-border p-3 md:p-4 flex flex-wrap justify-between items-center gap-3 sticky top-0 z-30 shadow-md">
       <div class="flex items-center gap-3">
-        <div class="bg-obsidian-800 p-1.5 rounded-lg border border-gold-500/20 md:hidden">
+        <div class="bg-gradient-to-b from-[#f8fafc] to-[#e2e8f0] p-1 rounded-lg border border-gold-500/40 md:hidden shadow-[0_0_10px_rgba(212,175,55,0.2)]">
           <img src="/logo.png" alt="NAUPAR" class="h-6 object-contain">
         </div>
         <div>
@@ -117,7 +113,7 @@
     <!-- Main Body -->
     <main class="p-3 md:p-5 space-y-4 flex-1 w-full max-w-[100vw]">
 
-      <!-- 1. VISTA IMÁGENES RAW (CARDS NEGRO / DORADO) -->
+      <!-- 1. VISTA IMÁGENES RAW -->
       <div x-show="tablaActiva === 'imagenes'" class="space-y-4 w-full" x-cloak>
         <div class="bg-obsidian-900 border border-obsidian-border rounded-2xl p-4 md:p-5 shadow-2xl">
           
@@ -128,13 +124,10 @@
             </button>
           </div>
 
-          <!-- GRID CARDS: Minimalista sin botones redundantes -->
           <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-            
             <template x-for="img in imagenes" :key="img.id || Math.random()">
               <div class="bg-obsidian-800 border border-obsidian-border rounded-xl overflow-hidden hover:border-gold-500/40 transition-all duration-300 flex flex-col group relative">
                 
-                <!-- PORTADA IMAGEN (Click directo para abrir) -->
                 <div class="h-40 md:h-48 w-full bg-obsidian-950 relative border-b border-obsidian-border">
                   <template x-if="img.url">
                     <a :href="img.url" target="_blank" class="block w-full h-full p-2 cursor-pointer">
@@ -147,11 +140,9 @@
                     </div>
                   </template>
 
-                  <!-- BADGE HASH DORADO -->
                   <div class="absolute top-2 left-2 bg-obsidian-950/90 text-gold-400 font-mono text-[9px] md:text-[10px] font-bold px-2 py-0.5 rounded border border-gold-500/30 shadow-md" x-text="'#' + (img.hash || img.id)"></div>
                 </div>
 
-                <!-- DETALLES MINIMALISTAS -->
                 <div class="p-3 flex-1 flex flex-col gap-1.5">
                   <div class="flex justify-between items-start gap-2">
                     <div class="font-bold text-slate-200 text-[11px] md:text-xs truncate flex-1" x-text="img.remitente" :title="img.remitente"></div>
@@ -159,8 +150,6 @@
                   </div>
 
                   <div class="text-[9px] md:text-[10px] text-slate-500 font-mono truncate" x-text="img.remotejid" :title="img.remotejid"></div>
-
-                  <!-- CAPTION LOTE EN 2 LÍNEAS -->
                   <div class="mt-1 text-[9px] md:text-[10px] text-slate-400 font-mono line-clamp-2 leading-tight" x-text="img.caption || 'Sin texto...'" :title="img.caption"></div>
                 </div>
 
@@ -172,7 +161,6 @@
                 Cargando comprobantes...
               </div>
             </template>
-
           </div>
         </div>
       </div>
@@ -228,7 +216,7 @@
         </div>
       </div>
 
-      <!-- 3. VISTA TASAS CON BOTONES REORGANIZADOS -->
+      <!-- 3. VISTA TASAS -->
       <div x-show="tablaActiva === 'cartelera_tasas'" class="space-y-4 md:space-y-6" x-cloak>
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-obsidian-border pb-4">
           <div>
@@ -236,7 +224,6 @@
             <p class="text-xs text-slate-500">Inversiones NAUPAR — Emisión e Integración P2P</p>
           </div>
           <div class="flex items-center gap-2 w-full sm:w-auto">
-            <!-- BOTÓN SINCRONIZAR Y TUERCA JUNTOS -->
             <button @click="init()" class="flex-1 sm:flex-none justify-center bg-gold-600 hover:bg-gold-500 text-obsidian-950 font-bold px-4 py-2 rounded-xl text-xs transition-all shadow-lg flex items-center gap-1.5">
               <span>🔄</span> <span>Sincronizar</span>
             </button>
@@ -246,13 +233,11 @@
           </div>
         </div>
 
-        <!-- CUADRO 1: TASAS ACTIVAS CON REENVIAR DENTRO -->
         <div class="bg-obsidian-900 border border-obsidian-border rounded-2xl p-4 md:p-5 shadow-2xl space-y-4">
           <div class="flex flex-wrap justify-between items-center gap-2 border-b border-obsidian-border pb-3">
             <h2 class="text-[11px] md:text-xs font-bold text-slate-200 tracking-wider uppercase">Tasas Activas en Producción</h2>
             <div class="flex items-center gap-2">
               <span id="lbl-lote-activo" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] md:text-[11px] font-extrabold px-2.5 py-1 rounded-full">Lote Activo: T000</span>
-              <!-- REENVIAR TASA ACTUAL AQUÍ -->
               <button onclick="reenviarTasaActual()" class="bg-gold-500/10 text-gold-400 border border-gold-500/30 text-[11px] font-bold px-3 py-1 rounded-lg hover:bg-gold-500/20 transition flex items-center gap-1">
                 🔄 Reenviar Tasa Actual
               </button>
@@ -261,7 +246,6 @@
           <div id="grid-tasas-activas" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2.5"></div>
         </div>
 
-        <!-- CUADRO 2: BORRADOR CON CONECTAR BINANCE Y PUBLICAR DENTRO -->
         <div class="bg-obsidian-900 border border-obsidian-border rounded-2xl p-4 md:p-5 shadow-2xl space-y-4">
           <div class="flex justify-between items-center border-b border-obsidian-border pb-3">
             <h2 class="text-[11px] md:text-xs font-bold text-slate-300 tracking-wider uppercase">Borrador Capturado (Paso Previo)</h2>
@@ -269,7 +253,6 @@
           <div id="grid-tasas-borrador" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5"></div>
           
           <div class="flex flex-wrap justify-end items-center gap-2.5 pt-3 border-t border-obsidian-border">
-            <!-- CONECTAR BINANCE P2P AL LADO DE PUBLICAR -->
             <button onclick="consultarApiBinance()" class="bg-obsidian-800 text-gold-400 border border-gold-500/30 text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-obsidian-700 transition flex items-center gap-1.5 shadow">
               ⚡ Conectar Binance API
             </button>
@@ -283,7 +266,7 @@
     </main>
   </div>
 
-  <!-- MODAL DE FACTORES DINÁMICOS -->
+  <!-- MODAL FACTORES -->
   <div x-show="modalFactores" 
        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
        x-transition:enter="transition ease-out duration-200"
@@ -458,7 +441,7 @@
 
     function dashboardApp() {
       return {
-        tablaActiva: 'imagenes', // INICIA DIRECTAMENTE EN IMÁGENES
+        tablaActiva: 'imagenes',
         modalFactores: false,
         remesas: [],
         imagenes: [],
