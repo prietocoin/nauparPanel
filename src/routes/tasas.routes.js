@@ -39,10 +39,10 @@ async function initTasasSchema() {
   }
 }
 initTasasSchema();
-// GET /api/imagenes -> Consulta comprobantes de NAUPAR desde comprobantes_test
+
+// 2. GET /api/tasas/imagenes -> Consulta comprobantes de NAUPAR desde comprobantes_test
 router.get('/imagenes', async (req, res) => {
   try {
-    const pool = db.pool || db;
     const result = await pool.query(`
       SELECT * FROM comprobantes_test 
       WHERE LOWER(COALESCE(socio, empresa, '')) LIKE '%naupar%'
@@ -53,7 +53,8 @@ router.get('/imagenes', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-// 2. GET /api/tasas/ultimas -> Tasas oficiales activas en producción
+
+// 3. GET /api/tasas/ultimas -> Tasas oficiales activas en producción
 router.get('/ultimas', async (req, res) => {
   try {
     const lastLotRes = await pool.query(`
@@ -83,7 +84,7 @@ router.get('/ultimas', async (req, res) => {
   }
 });
 
-// 3. POST /api/tasas/n8n-webhook -> Guarda en PostgreSQL con id_tasa = 'BORRADOR'
+// 4. POST /api/tasas/n8n-webhook -> Guarda en PostgreSQL con id_tasa = 'BORRADOR'
 router.post('/n8n-webhook', async (req, res) => {
   try {
     let payload = req.body;
@@ -135,7 +136,7 @@ router.post('/n8n-webhook', async (req, res) => {
   }
 });
 
-// 4. GET /api/tasas/fetch-hoo -> Consulta el borrador persistente en PostgreSQL
+// 5. GET /api/tasas/fetch-hoo -> Consulta el borrador persistente en PostgreSQL
 router.get('/fetch-hoo', async (req, res) => {
   try {
     const ratesRes = await pool.query(
@@ -157,7 +158,7 @@ router.get('/fetch-hoo', async (req, res) => {
   }
 });
 
-// 5. GET /api/tasas/factores -> Carga la matriz completa de factores
+// 6. GET /api/tasas/factores -> Carga la matriz completa de factores
 router.get('/factores', async (req, res) => {
   try {
     const result = await pool.query('SELECT moneda_origen, moneda_destino, factor FROM naupar_factores_matriz;');
@@ -172,7 +173,7 @@ router.get('/factores', async (req, res) => {
   }
 });
 
-// 6. POST /api/tasas/factores -> Guarda cambios de factores por moneda origen
+// 7. POST /api/tasas/factores -> Guarda cambios de factores por moneda origen
 router.post('/factores', async (req, res) => {
   try {
     const { moneda_origen, factores } = req.body;
@@ -193,7 +194,7 @@ router.post('/factores', async (req, res) => {
   }
 });
 
-// 7. POST /api/tasas/publicar -> Emite el lote oficial (T001, T002...)
+// 8. POST /api/tasas/publicar -> Emite el lote oficial (T001, T002...)
 router.post('/publicar', async (req, res) => {
   try {
     const { id_tasa, tasas } = req.body;
@@ -237,7 +238,7 @@ router.post('/publicar', async (req, res) => {
   }
 });
 
-// 8. POST /api/tasas/reenviar
+// 9. POST /api/tasas/reenviar
 router.post('/reenviar', async (req, res) => {
   try {
     const { id_tasa } = req.body;
