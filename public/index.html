@@ -24,54 +24,6 @@
     }
   </script>
 </head>
-  <tbody class="divide-y divide-[#262a42] font-medium text-slate-300">
-  <template x-for="img in imagenes" :key="img.id">
-    <tr class="hover:bg-[#16192b] transition-colors">
-      <!-- Miniatura -->
-      <td class="p-3">
-        <template x-if="img.url">
-          <a :href="img.url" target="_blank">
-            <img :src="img.url" class="w-10 h-12 object-cover rounded border border-slate-700 hover:scale-110 transition shadow" alt="R2" />
-          </a>
-        </template>
-        <template x-if="!img.url">
-          <div class="w-10 h-12 bg-slate-800 rounded flex items-center justify-center text-[9px] text-slate-500 font-mono">Sin foto</div>
-        </template>
-      </td>
-
-      <!-- Hash corto -->
-      <td class="p-3 font-mono text-amber-400 font-bold text-[11px]" x-text="'#' + (img.hash || img.id)"></td>
-
-      <!-- Timestamp -->
-      <td class="p-3 text-slate-400 font-mono text-[11px]" x-text="img.fecha ? new Date(img.fecha).toLocaleString() : 'Reciente'"></td>
-
-      <!-- Remitente / Push Name & Instancia -->
-      <td class="p-3 font-bold text-emerald-400">
-        <span x-text="img.remitente"></span>
-        <span class="block text-[10px] text-cyan-400 font-mono font-normal" x-text="'Instancia: ' + img.instancia"></span>
-      </td>
-
-      <!-- Grupo Raw -->
-      <td class="p-3 font-mono text-slate-400 text-[11px]" x-text="img.remotejid"></td>
-
-      <!-- Caption -->
-      <td class="p-3 text-white truncate max-w-[200px]" x-text="img.caption"></td>
-
-      <!-- Botón de apertura -->
-      <td class="p-3">
-        <template x-if="img.url">
-          <a :href="img.url" target="_blank" class="inline-flex items-center gap-1 text-amber-400 hover:text-amber-300 font-bold bg-amber-950/40 border border-amber-800/60 px-2 py-1 rounded text-[11px] transition">
-            🖼️ Ver R2 ↗
-          </a>
-        </template>
-      </td>
-    </tr>
-  </template>
-
-  <tr x-show="imagenes.length === 0">
-    <td colspan="7" class="p-8 text-center text-slate-500 italic">No se encontraron registros de la instancia Kleudis en registros_raw...</td>
-  </tr>
-</tbody>
 <body class="bg-brand-dark text-slate-200 font-sans antialiased min-h-screen flex" x-data="dashboardApp()" x-init="init()">
 
   <!-- Sidebar Lateral -->
@@ -272,38 +224,61 @@
             <table class="w-full text-left border-collapse text-xs">
               <thead class="bg-[#0b0d19] text-slate-400 uppercase tracking-wider font-semibold">
                 <tr>
-                  <th class="p-3">ID</th>
-                  <th class="p-3">Fecha</th>
+                  <th class="p-3">Miniatura</th>
+                  <th class="p-3">Hash</th>
+                  <th class="p-3">Fecha / Hora</th>
                   <th class="p-3">Remitente / Instancia</th>
                   <th class="p-3">Grupo / JID</th>
-                  <th class="p-3">Texto / Caption</th>
-                  <th class="p-3">Monto</th>
-                  <th class="p-3">Imagen / Adjunto</th>
+                  <th class="p-3">Caption / Texto</th>
+                  <th class="p-3">Acción</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-[#262a42] font-medium text-slate-300">
                 <template x-for="img in imagenes" :key="img.id || Math.random()">
                   <tr class="hover:bg-[#16192b] transition-colors">
-                    <td class="p-3 font-mono text-amber-400 font-bold" x-text="'#' + img.id"></td>
-                    <td class="p-3 text-slate-400 font-mono" x-text="img.created_at || img.timestamp || img.fecha ? new Date(img.created_at || img.timestamp || img.fecha).toLocaleString() : 'N/A'"></td>
-                    <td class="p-3 font-bold text-emerald-400" x-text="img.remitente || img.pushname || img.instancia || 'Inversiones Naupar'"></td>
-                    <td class="p-3 font-mono text-slate-400 text-[11px]" x-text="img.remotejid || img.group_id || img.jid || 'N/A'"></td>
-                    <td class="p-3 text-white truncate max-w-[200px]" x-text="img.caption || img.texto || img.message || 'Sin texto'"></td>
-                    <td class="p-3 font-bold text-white" x-text="Number(img.monto || 0).toFixed(2)"></td>
+                    <!-- Miniatura R2 -->
                     <td class="p-3">
-                      <template x-if="img.hiperlink || img.url_comprobante || img.r2_url || img.url">
-                        <a :href="img.hiperlink || img.url_comprobante || img.r2_url || img.url" target="_blank" class="inline-flex items-center gap-1 text-amber-400 hover:text-amber-300 font-bold bg-amber-950/40 border border-amber-800/60 px-2 py-1 rounded text-[11px]">
-                          🖼️ Abrir Imagen ↗
+                      <template x-if="img.url">
+                        <a :href="img.url" target="_blank">
+                          <img :src="img.url" class="w-10 h-12 object-cover rounded border border-slate-700 hover:scale-110 transition shadow" alt="R2" />
                         </a>
                       </template>
-                      <template x-if="!(img.hiperlink || img.url_comprobante || img.r2_url || img.url)">
-                        <span class="text-slate-600 italic">Sin imagen</span>
+                      <template x-if="!img.url">
+                        <div class="w-10 h-12 bg-slate-800 rounded flex items-center justify-center text-[9px] text-slate-500 font-mono">Sin foto</div>
+                      </template>
+                    </td>
+
+                    <!-- Hash -->
+                    <td class="p-3 font-mono text-amber-400 font-bold text-[11px]" x-text="'#' + (img.hash || img.id)"></td>
+
+                    <!-- Fecha -->
+                    <td class="p-3 text-slate-400 font-mono text-[11px]" x-text="img.fecha ? new Date(img.fecha).toLocaleString() : 'Reciente'"></td>
+
+                    <!-- Remitente & Instancia -->
+                    <td class="p-3 font-bold text-emerald-400">
+                      <span x-text="img.remitente"></span>
+                      <span class="block text-[10px] text-cyan-400 font-mono font-normal" x-text="'Instancia: ' + img.instancia"></span>
+                    </td>
+
+                    <!-- Grupo JID -->
+                    <td class="p-3 font-mono text-slate-400 text-[11px]" x-text="img.remotejid"></td>
+
+                    <!-- Caption -->
+                    <td class="p-3 text-white truncate max-w-[200px]" x-text="img.caption"></td>
+
+                    <!-- Ver R2 -->
+                    <td class="p-3">
+                      <template x-if="img.url">
+                        <a :href="img.url" target="_blank" class="inline-flex items-center gap-1 text-amber-400 hover:text-amber-300 font-bold bg-amber-950/40 border border-amber-800/60 px-2 py-1 rounded text-[11px] transition">
+                          🖼️ Ver R2 ↗
+                        </a>
                       </template>
                     </td>
                   </tr>
                 </template>
+
                 <tr x-show="imagenes.length === 0">
-                  <td colspan="7" class="p-8 text-center text-slate-500 italic">No se encontraron registros de NAUPAR en la tabla registros_raw...</td>
+                  <td colspan="7" class="p-8 text-center text-slate-500 italic">No se encontraron registros de la instancia Kleudis en registros_raw...</td>
                 </tr>
               </tbody>
             </table>
