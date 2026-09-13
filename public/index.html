@@ -58,7 +58,7 @@
     </div>
 
     <div class="p-2 border-t border-[#262a42] text-[10px] text-slate-500 font-mono text-center">
-      <span>NAUPAR Engine v1.0 • Express + Zod</span>
+      <span>NAUPAR Engine v1.0 • Express + Postgres</span>
     </div>
   </aside>
 
@@ -182,6 +182,48 @@
             </button>
           </div>
         </div>
+
+        <!-- EDITOR DE FACTORES DINÁMICOS (MATRIZ ATENEA) -->
+        <div class="bg-[#111322] border border-[#262a42] rounded-xl p-5 shadow-xl space-y-4 font-sans" x-data="editorFactores()" x-init="cargarFactores()">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-[#262a42] pb-3">
+            <div>
+              <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                ⚙️ Configuración Matriz de Factores (Margen Remesa)
+              </h2>
+              <p class="text-[11px] text-slate-400">Ajusta los multiplicadores por binomio para el cálculo oficial</p>
+            </div>
+            <div class="flex items-center gap-3 bg-[#0b0d19] px-3 py-1.5 rounded-lg border border-[#262a42]">
+              <label class="text-xs font-bold text-slate-300">Origen:</label>
+              <select x-model="origenActivo" class="bg-transparent text-xs font-bold text-amber-400 focus:outline-none cursor-pointer">
+                <template x-for="m in monedas" :key="m">
+                  <option :value="m" x-text="m" class="bg-[#111322] text-white"></option>
+                </template>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3">
+            <template x-for="dest in monedas.filter(m => m !== origenActivo)" :key="dest">
+              <div class="bg-[#0b0d19] border border-[#262a42] rounded-lg p-3 space-y-1 hover:border-slate-600 transition">
+                <span class="text-[10px] font-bold text-slate-400 block font-mono" x-text="origenActivo + ' ➔ ' + dest"></span>
+                <div class="flex items-center gap-1">
+                  <span class="text-[10px] text-slate-500 font-bold">FACTOR:</span>
+                  <input type="number" step="0.001" 
+                         :value="obtenerFactor(origenActivo, dest)" 
+                         @input="actualizarValor(dest, $event.target.value)"
+                         class="w-full bg-[#16192b] border border-slate-700 rounded px-2 py-1 text-xs font-bold text-emerald-400 font-mono text-right focus:outline-none focus:border-amber-400">
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <div class="flex justify-end pt-2">
+            <button @click="guardarFactores()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs px-4 py-2 rounded-lg shadow transition flex items-center gap-2">
+              💾 Guardar Factores (<span x-text="origenActivo"></span>)
+            </button>
+          </div>
+        </div>
+
       </div>
 
       <!-- VISTA REGISTROS INDIVIDUALES -->
@@ -237,104 +279,63 @@
 
     </main>
   </div>
-<!-- EDITOR DE FACTORES DINÁMICOS (MATRIZ ATENEA) -->
-<div class="bg-[#111322] border border-[#262a42] rounded-xl p-5 shadow-xl space-y-4 font-sans" x-data="editorFactores()" x-init="cargarFactores()">
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-[#262a42] pb-3">
-    <div>
-      <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
-        ⚙️ Configuración Matriz de Factores (Margen Remesa)
-      </h2>
-      <p class="text-[11px] text-slate-400">Ajusta los multiplicadores por binomio para el cálculo oficial</p>
-    </div>
-    <div class="flex items-center gap-3 bg-[#0b0d19] px-3 py-1.5 rounded-lg border border-[#262a42]">
-      <label class="text-xs font-bold text-slate-300">Origen:</label>
-      <select x-model="origenActivo" class="bg-transparent text-xs font-bold text-amber-400 focus:outline-none cursor-pointer">
-        <template x-for="m in monedas" :key="m">
-          <option :value="m" x-text="m" class="bg-[#111322] text-white"></option>
-        </template>
-      </select>
-    </div>
-  </div>
 
-  <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3">
-    <template x-for="dest in monedas.filter(m => m !== origenActivo)" :key="dest">
-      <div class="bg-[#0b0d19] border border-[#262a42] rounded-lg p-3 space-y-1 hover:border-slate-600 transition">
-        <span class="text-[10px] font-bold text-slate-400 block font-mono" x-text="origenActivo + ' ➔ ' + dest"></span>
-        <div class="flex items-center gap-1">
-          <span class="text-[10px] text-slate-500 font-bold">FACTOR:</span>
-          <input type="number" step="0.001" 
-                 :value="obtenerFactor(origenActivo, dest)" 
-                 @input="actualizarValor(dest, $event.target.value)"
-                 class="w-full bg-[#16192b] border border-slate-700 rounded px-2 py-1 text-xs font-bold text-emerald-400 font-mono text-right focus:outline-none focus:border-amber-400">
-        </div>
-      </div>
-    </template>
-  </div>
-
-  <div class="flex justify-end pt-2">
-    <button @click="guardarFactores()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs px-4 py-2 rounded-lg shadow transition flex items-center gap-2">
-      💾 Guardar Factores (<span x-text="origenActivo"></span>)
-    </button>
-  </div>
-</div>
-
-<script>
-function editorFactores() {
-  return {
-    monedas: ['VES', 'PEN', 'COP', 'CLP', 'MXN', 'USD', 'EUR', 'ARS', 'PYG', 'USDT'],
-    origenActivo: 'PEN',
-    factores: {},
-    
-    async cargarFactores() {
-      try {
-        const res = await fetch('/api/tasas/factores');
-        const data = await res.json();
-        if (data.success) {
-          this.factores = data.factores;
-        }
-      } catch (e) {
-        console.error('Error al cargar factores:', e);
-      }
-    },
-
-    obtenerFactor(origen, destino) {
-      if (this.factores[origen] && this.factores[origen][destino] !== undefined) {
-        return this.factores[origen][destino];
-      }
-      return 0.9000;
-    },
-
-    actualizarValor(destino, val) {
-      if (!this.factores[this.origenActivo]) {
-        this.factores[this.origenActivo] = {};
-      }
-      this.factores[this.origenActivo][destino] = parseFloat(val) || 0;
-    },
-
-    async guardarFactores() {
-      try {
-        const payload = {
-          moneda_origen: this.origenActivo,
-          factores: this.factores[this.origenActivo] || {}
-        };
-        const res = await fetch('/api/tasas/factores', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (data.success) {
-          alert(`✅ Factores para ${this.origenActivo} guardados en PostgreSQL`);
-        }
-      } catch (e) {
-        alert('❌ Error al guardar factores');
-      }
-    }
-  }
-}
-</script>
   <script>
     let borradorValores = {};
+
+    function editorFactores() {
+      return {
+        monedas: ['VES', 'PEN', 'COP', 'CLP', 'MXN', 'USD', 'EUR', 'ARS', 'PYG', 'USDT'],
+        origenActivo: 'PEN',
+        factores: {},
+        
+        async cargarFactores() {
+          try {
+            const res = await fetch('/api/tasas/factores');
+            const data = await res.json();
+            if (data.success) {
+              this.factores = data.factores;
+            }
+          } catch (e) {
+            console.error('Error al cargar factores:', e);
+          }
+        },
+
+        obtenerFactor(origen, destino) {
+          if (this.factores[origen] && this.factores[origen][destino] !== undefined) {
+            return this.factores[origen][destino];
+          }
+          return 0.9000;
+        },
+
+        actualizarValor(destino, val) {
+          if (!this.factores[this.origenActivo]) {
+            this.factores[this.origenActivo] = {};
+          }
+          this.factores[this.origenActivo][destino] = parseFloat(val) || 0;
+        },
+
+        async guardarFactores() {
+          try {
+            const payload = {
+              moneda_origen: this.origenActivo,
+              factores: this.factores[this.origenActivo] || {}
+            };
+            const res = await fetch('/api/tasas/factores', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) {
+              alert(`✅ Factores para ${this.origenActivo} guardados en PostgreSQL`);
+            }
+          } catch (e) {
+            alert('❌ Error al guardar factores');
+          }
+        }
+      }
+    }
 
     async function cargarTasasActivas() {
       try {
@@ -392,7 +393,11 @@ function editorFactores() {
 
     async function reenviarTasaActual() {
       try {
-        const res = await fetch('/api/tasas/reenviar', { method: 'POST', body: JSON.stringify({}) });
+        const res = await fetch('/api/tasas/reenviar', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
         const data = await res.json();
         if (data.success) alert(data.message);
       } catch (e) { alert('Error reenviando tasa.'); }
