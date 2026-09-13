@@ -2,12 +2,12 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 
-// Obtener la instancia real de query/pool según la exportación de db.js
+// Utiliza la conexión nativa existente
 const pool = db.pool || db;
 
 let borradorTasasNaupar = {};
 
-// Inicialización de esquema independiente para NAUPAR
+// Inicialización del esquema independiente
 async function initTasasSchema() {
   try {
     await pool.query(`
