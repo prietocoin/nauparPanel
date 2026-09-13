@@ -130,7 +130,47 @@ router.get('/fetch-hoo', async (req, res) => {
     ratesRes.rows.forEach(r => {
       ratesObj[r.moneda.toUpperCase()] = parseFloat(r.tasa_base);
     });
+// Agregar dentro de initTasasSchema()
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS naupar_factores_matriz (
+    moneda_origen VARCHAR(10) NOT NULL,
+    moneda_destino VARCHAR(10) NOT NULL,
+    factor NUMERIC(6, 4) NOT NULL DEFAULT 0.9000,
+    PRIMARY KEY (moneda_origen, moneda_destino)
+  );
+`);
 
+// GET /api/tasas/factores -> Carga la matriz completa
+router.get('/factores', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT moneda_origen, moneda_destino, factor FROM naupar_factores_matriz;');
+    const matriz = {};
+    result.rows.forEach(r => {
+      if (!matriz[r.moneda_origen]) matriz[r.moneda_origen] = {};
+      matriz[r.moneda_origen][r.moneda_destino] = parseFloat(r.factor);
+    });
+    res.json({ success: true, factores: matriz });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/tasas/factores -> Guarda cambios de una moneda origen
+router.post('/factores', async (req, res) => {
+  try {
+    const { moneda_origen, factores } = req.body; // ej: origen: 'PEN', factores: { VES: 0.93, COP: 0.90 }
+    for (const [destino, val] of Object.entries(factores)) {
+      await pool.query(`
+        INSERT INTO naupar_factores_matriz (moneda_origen, moneda_destino, factor)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (moneda_origen, moneda_destino) DO UPDATE SET factor = EXCLUDED.factor;
+      `, [moneda_origen.toUpperCase(), destino.toUpperCase(), parseFloat(val)]);
+    }
+    res.json({ success: true, message: `Factores para ${moneda_origen} actualizados.` });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
     return res.json({ success: true, rates: ratesObj });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
