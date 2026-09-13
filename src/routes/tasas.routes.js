@@ -4,7 +4,7 @@ const db = require('../config/db');
 
 const pool = db.pool || db;
 
-// Inicialización de tablas independientes en PostgreSQL
+// 1. Inicialización de tabla única para NAUPAR
 async function initTasasSchema() {
   try {
     await pool.query(`
@@ -23,28 +23,23 @@ async function initTasasSchema() {
         creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
-      -- Tabla de borrador persistente en PostgreSQL (Sin Google Sheets ni RAM)
-      CREATE TABLE IF NOT EXISTS naupar_borrador_tasas (
-        moneda VARCHAR(10) PRIMARY KEY,
-        tasa_base NUMERIC(18, 6) NOT NULL,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-
       CREATE INDEX IF NOT EXISTS idx_naupar_mercado_tasas_id ON naupar_mercado_tasas(id_tasa);
       CREATE INDEX IF NOT EXISTS idx_naupar_mercado_tasas_ts ON naupar_mercado_tasas(timestamp ASC);
     `);
-    console.log('✅ Tablas PostgreSQL de NAUPAR (mercado, borrador y notificaciones) verificadas.');
+    console.log('✅ Tablas independientes de NAUPAR verificadas en PostgreSQL.');
   } catch (err) {
-    console.error('⚠️ Error al inicializar tablas en PostgreSQL:', err.message);
+    console.error('⚠️ Error al inicializar tablas NAUPAR:', err.message);
   }
 }
 initTasasSchema();
 
-// 1. GET: Últimas tasas oficiales en producción
+// 2. GET /api/tasas/ultimas -> Tasas oficiales activas en producción
 router.get('/ultimas', async (req, res) => {
   try {
     const lastLotRes = await pool.query(`
-      SELECT id_tasa FROM naupar_mercado_tasas ORDER BY timestamp DESC, id DESC LIMIT 1;
+      SELECT id_tasa FROM naupar_mercado_tasas 
+      WHERE id_tasa != 'BORRADOR' 
+      ORDER BY timestamp DESC, id DESC LIMIT 1;
     `);
 
     if (lastLotRes.rows.length === 0) {
@@ -68,7 +63,7 @@ router.get('/ultimas', async (req, res) => {
   }
 });
 
-// 2. POST: Webhook n8n -> Procesa WhatsApp / JSON y guarda en PostgreSQL
+// 3. POST /api/tasas/n8n-webhook -> Guarda en PostgreSQL con id_tasa = 'BORRADOR'
 router.post('/n8n-webhook', async (req, res) => {
   try {
     let payload = req.body;
@@ -83,7 +78,7 @@ router.post('/n8n-webhook', async (req, res) => {
       ratesObj = payload;
     }
 
-    // Procesa directamente el texto enviado por WhatsApp (Ejemplo: Regex_945_3,35_3120...)
+    // Decodifica mensajes de WhatsApp tipo Regex_
     const textoMsg = payload.conversation || payload.message?.conversation || payload.text || '';
     if (textoMsg.includes('Regex_')) {
       const partes = textoMsg.split('Regex_')[1].split('_');
@@ -97,38 +92,42 @@ router.post('/n8n-webhook', async (req, res) => {
     }
 
     if (Object.keys(ratesObj).length === 0) {
-      return res.status(400).json({ success: false, message: 'No se encontraron tasas procesables.' });
+      return res.status(400).json({ success: false, message: 'No se procesaron tasas válidas.' });
     }
 
-    // Guarda o actualiza en naupar_borrador_tasas (PostgreSQL)
+    const timestamp = Math.floor(Date.now() / 1000);
+
+    // Reemplaza el borrador anterior en la BD
+    await pool.query("DELETE FROM naupar_mercado_tasas WHERE id_tasa = 'BORRADOR';");
+
     for (const [moneda, valor] of Object.entries(ratesObj)) {
       if (valor !== null && valor !== undefined && !isNaN(parseFloat(valor))) {
-        await pool.query(`
-          INSERT INTO naupar_borrador_tasas (moneda, tasa_base, updated_at)
-          VALUES ($1, $2, CURRENT_TIMESTAMP)
-          ON CONFLICT (moneda) 
-          DO UPDATE SET tasa_base = EXCLUDED.tasa_base, updated_at = CURRENT_TIMESTAMP;
-        `, [moneda.toUpperCase(), parseFloat(valor)]);
+        await pool.query(
+          `INSERT INTO naupar_mercado_tasas (id_tasa, moneda, tasa_base, timestamp) VALUES ('BORRADOR', $1, $2, $3);`,
+          [moneda.toUpperCase(), parseFloat(valor), timestamp]
+        );
       }
     }
 
-    return res.json({ success: true, message: 'Borrador guardado exitosamente en PostgreSQL', rates: ratesObj });
+    return res.json({ success: true, message: 'Borrador guardado en PostgreSQL', rates: ratesObj });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// 3. GET: Obtener borrador directamente desde PostgreSQL
+// 4. GET /api/tasas/fetch-hoo -> Consulta el borrador persistente en PostgreSQL
 router.get('/fetch-hoo', async (req, res) => {
   try {
-    const rowsRes = await pool.query(`SELECT moneda, tasa_base FROM naupar_borrador_tasas;`);
-    
-    if (rowsRes.rows.length === 0) {
-      return res.status(404).json({ success: false, msg: 'Sin borrador en la base de datos PostgreSQL.' });
+    const ratesRes = await pool.query(
+      `SELECT moneda, tasa_base FROM naupar_mercado_tasas WHERE id_tasa = 'BORRADOR';`
+    );
+
+    if (ratesRes.rows.length === 0) {
+      return res.status(404).json({ success: false, msg: 'Sin borrador pendiente en la base de datos.' });
     }
 
     const ratesObj = {};
-    rowsRes.rows.forEach(r => {
+    ratesRes.rows.forEach(r => {
       ratesObj[r.moneda.toUpperCase()] = parseFloat(r.tasa_base);
     });
 
@@ -138,7 +137,7 @@ router.get('/fetch-hoo', async (req, res) => {
   }
 });
 
-// 4. POST: Publicar Borrador a Lote Oficial en PostgreSQL
+// 5. POST /api/tasas/publicar -> Emite el lote oficial (T001, T002...)
 router.post('/publicar', async (req, res) => {
   try {
     const { id_tasa, tasas } = req.body;
@@ -150,7 +149,9 @@ router.post('/publicar', async (req, res) => {
 
     let codigoTasa = id_tasa;
     if (!codigoTasa) {
-      const lastRes = await pool.query("SELECT id_tasa FROM naupar_mercado_tasas ORDER BY id DESC LIMIT 1;");
+      const lastRes = await pool.query(
+        "SELECT id_tasa FROM naupar_mercado_tasas WHERE id_tasa != 'BORRADOR' ORDER BY id DESC LIMIT 1;"
+      );
       if (lastRes.rows.length > 0) {
         const lastLot = lastRes.rows[0].id_tasa;
         const match = lastLot.match(/\d+/);
@@ -170,22 +171,26 @@ router.post('/publicar', async (req, res) => {
       }
     }
 
+    // Limpia el borrador procesado y notifica
+    await pool.query("DELETE FROM naupar_mercado_tasas WHERE id_tasa = 'BORRADOR';");
     await pool.query(`INSERT INTO naupar_notificaciones_tasas (id_tasa) VALUES ($1);`, [codigoTasa]);
 
-    res.json({ success: true, id_tasa: codigoTasa, message: `Tasa ${codigoTasa} publicada en PostgreSQL` });
+    res.json({ success: true, id_tasa: codigoTasa, message: `Tasa ${codigoTasa} publicada correctamente` });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// 5. POST: Reenviar notificación de lote
+// 6. POST /api/tasas/reenviar
 router.post('/reenviar', async (req, res) => {
   try {
     const { id_tasa } = req.body;
     let codigoTasa = id_tasa;
 
     if (!codigoTasa) {
-      const lastRes = await pool.query("SELECT id_tasa FROM naupar_mercado_tasas ORDER BY id DESC LIMIT 1;");
+      const lastRes = await pool.query(
+        "SELECT id_tasa FROM naupar_mercado_tasas WHERE id_tasa != 'BORRADOR' ORDER BY id DESC LIMIT 1;"
+      );
       if (lastRes.rows.length === 0) return res.status(400).json({ success: false, message: 'Sin tasas registradas.' });
       codigoTasa = lastRes.rows[0].id_tasa;
     }
