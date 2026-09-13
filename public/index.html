@@ -34,25 +34,18 @@
       </div>
 
       <nav class="space-y-1.5 text-xs font-semibold">
-        <p class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Conciliación Binomial</p>
-        
-        <button @click="cambiarTabla('vista_pares')" :class="tablaActiva === 'vista_pares' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
-          <span>⇄ Vista de Pares</span>
-        </button>
-
         <button @click="cambiarTabla('registros')" :class="tablaActiva === 'registros' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
-          <span>📋 Visor de Remesas</span>
+          <span>📋 Remesas</span>
         </button>
         
         <button @click="cambiarTabla('cartelera_tasas')" :class="tablaActiva === 'cartelera_tasas' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
-          <span>📊 Baúl & Cartelera Tasas</span>
+          <span>📊 Tasas</span>
         </button>
         
         <div class="py-2"><hr class="border-[#262a42]"></div>
-        <p class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Revisión de Bases</p>
 
-        <button @click="cambiarTabla('cola_recepcion')" :class="tablaActiva === 'cola_recepcion' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
-          <span>📥 Cola Recepción</span>
+        <button @click="cambiarTabla('imagenes')" :class="tablaActiva === 'imagenes' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold' : 'text-slate-400 hover:bg-[#16192b] hover:text-slate-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all">
+          <span>🖼️ Imágenes</span>
         </button>
       </nav>
     </div>
@@ -72,13 +65,13 @@
           <img src="/logo.png" alt="NAUPAR" class="h-7 object-contain">
         </div>
         <div>
-          <h1 class="text-lg font-bold text-white capitalize" x-text="tablaActiva === 'vista_pares' ? 'Conciliación de Pares' : (tablaActiva === 'cartelera_tasas' ? 'Baúl & Cartelera de Tasas' : tablaActiva.replace('_', ' '))"></h1>
+          <h1 class="text-lg font-bold text-white capitalize" x-text="tablaActiva === 'registros' ? 'Visor de Remesas' : (tablaActiva === 'cartelera_tasas' ? 'Baúl & Cartelera de Tasas' : 'Comprobantes de Imágenes NAUPAR')"></h1>
           <p class="text-xs text-slate-400">Auditoría pasiva en tiempo real para WhatsApp</p>
         </div>
       </div>
 
       <div class="flex items-center gap-3">
-        <span class="text-xs font-mono bg-amber-950/60 text-amber-400 border border-amber-800/60 px-3 py-1 rounded-full font-bold" x-text="tablaActiva === 'vista_pares' ? datosPares.length + ' Pares Conciliados' : (tablaActiva === 'cartelera_tasas' ? 'Control de Mercado' : remesas.length + ' Regs')"></span>
+        <span class="text-xs font-mono bg-amber-950/60 text-amber-400 border border-amber-800/60 px-3 py-1 rounded-full font-bold" x-text="tablaActiva === 'imagenes' ? imagenes.length + ' Comprobantes' : (tablaActiva === 'cartelera_tasas' ? 'Control de Mercado' : remesas.length + ' Regs')"></span>
         <button @click="init()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow">
           🔄 Sincronizar
         </button>
@@ -88,58 +81,51 @@
     <!-- Main Body -->
     <main class="p-4 space-y-4 flex-1">
 
-      <!-- VISTA PARES -->
-      <div x-show="tablaActiva === 'vista_pares'" class="space-y-4">
+      <!-- VISTA REMESAS -->
+      <div x-show="tablaActiva === 'registros'" class="space-y-4">
         <div class="bg-[#111322] border border-[#262a42] rounded-xl overflow-hidden shadow-xl">
-          <div class="p-3 border-b border-[#262a42] bg-[#16192b] flex justify-between items-center">
-            <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Desglose Binomial (Depósito + Transferencia)</span>
-            <span class="text-[10px] text-slate-500">Auto-sincronizado con PostgreSQL</span>
-          </div>
-
           <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs whitespace-nowrap">
+            <table class="w-full text-left border-collapse text-xs">
               <thead class="bg-[#0b0d19] text-slate-400 uppercase tracking-wider font-semibold">
                 <tr>
-                  <th class="p-3">Par ID</th>
-                  <th class="p-3">Hashes</th>
+                  <th class="p-3">HASH</th>
+                  <th class="p-3">Fecha / Hora</th>
                   <th class="p-3">Asesor</th>
-                  <th class="p-3">Titular Envía</th>
-                  <th class="p-3">Titular Recibe</th>
-                  <th class="p-3">Par Divisas</th>
-                  <th class="p-3 bg-emerald-950/40 text-emerald-300">Monto Depositado</th>
-                  <th class="p-3 bg-slate-900">Comisión (3%)</th>
-                  <th class="p-3 bg-sky-950/40 text-sky-300">Monto Neto</th>
-                  <th class="p-3 bg-rose-950/40 text-rose-300">Monto Transferencia</th>
-                  <th class="p-3">Tasa / Factor</th>
-                  <th class="p-3">Margen Error</th>
+                  <th class="p-3">Tipo</th>
+                  <th class="p-3">Titular</th>
+                  <th class="p-3">Monto</th>
+                  <th class="p-3">Moneda</th>
+                  <th class="p-3">Banco</th>
+                  <th class="p-3">Comprobante</th>
+                  <th class="p-3">Estado</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-[#262a42] font-medium text-slate-300">
-                <template x-for="par in datosPares" :key="par.id || par.remesa_id">
+                <template x-for="r in remesas" :key="r.id">
                   <tr class="hover:bg-[#16192b] transition-colors">
-                    <td class="p-3 font-mono text-amber-400 font-bold" x-text="par.remesa_id || par.id_a_id_b"></td>
-                    <td class="p-3 font-mono text-slate-400" x-text="par.remesa_hash || par.hash_a_hash_b"></td>
-                    <td class="p-3 font-semibold text-white" x-text="par.remesa_asesor || par.asesor"></td>
-                    <td class="p-3 text-emerald-400 bg-emerald-950/20" x-text="par.remesa_titular_envia || par.titular_envia || 'N/A'"></td>
-                    <td class="p-3 text-rose-400 bg-rose-950/20" x-text="par.remesa_titular_recibe || par.titular_recibe || 'N/A'"></td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded bg-amber-950/50 border border-amber-800/60 text-amber-300 font-bold" x-text="par.remesa_monedas || par.remesa"></span></td>
-                    <td class="p-3 font-bold text-emerald-400 bg-emerald-950/10" x-text="Number(par.remesa_deposito || par.deposito || 0).toFixed(2)"></td>
-                    <td class="p-3 text-amber-400" x-text="Number(par.remesa_comision || (par.remesa_deposito ? par.remesa_deposito * 0.03 : 0)).toFixed(2)"></td>
-                    <td class="p-3 font-bold text-sky-300 bg-sky-950/10" x-text="Number(par.remesa_monto_neto || (par.remesa_deposito ? par.remesa_deposito * 0.97 : 0)).toFixed(2)"></td>
-                    <td class="p-3 font-bold text-rose-400 bg-rose-950/10" x-text="Number(par.remesa_transferencia || par.transferencia || 0).toFixed(2)"></td>
-                    <td class="p-3 font-mono">
-                      <span class="text-white font-bold" x-text="par.remesa_tasa_numero || par.tasa_numero"></span>
-                      <span class="text-slate-500">@</span>
-                      <span class="text-amber-400" x-text="par.remesa_tasa_factor || par.tasa_factor"></span>
+                    <td class="p-3 font-mono text-amber-400 font-bold" x-text="'#' + (r.hash_corto || r.id)"></td>
+                    <td class="p-3 text-slate-400 font-mono" x-text="new Date(r.fecha_hora || r.created_at).toLocaleString()"></td>
+                    <td class="p-3 font-semibold text-white" x-text="r.nombre_asesor"></td>
+                    <td class="p-3">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase" :class="String(r.tipo_operacion).toLowerCase().includes('ingreso') || String(r.tipo_operacion).toLowerCase().includes('deposito') ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-rose-950 text-rose-300 border border-rose-800'" x-text="r.tipo_operacion || 'ENVIO'"></span>
+                    </td>
+                    <td class="p-3" x-text="r.titular || 'N/A'"></td>
+                    <td class="p-3 font-bold text-white" x-text="Number(r.monto).toFixed(2)"></td>
+                    <td class="p-3 font-bold" x-text="r.moneda"></td>
+                    <td class="p-3 text-slate-400" x-text="r.banco || 'N/A'"></td>
+                    <td class="p-3">
+                      <template x-if="r.hiperlink">
+                        <a :href="r.hiperlink" target="_blank" class="text-amber-400 hover:underline font-mono">Ver R2 ↗</a>
+                      </template>
+                      <template x-if="!r.hiperlink">
+                        <span class="text-slate-600 italic">Sin adjunto</span>
+                      </template>
                     </td>
                     <td class="p-3">
-                      <span class="px-2 py-0.5 rounded text-[10px] font-bold" :class="Number(par.remesa_error_margen || par.error_margen || 0) === 0 ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-amber-950 text-amber-300 border border-amber-800'" x-text="(Number(par.remesa_error_margen || par.error_margen || 0) * 100).toFixed(2) + '%'"></span>
+                      <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800" x-text="r.estado_proceso || 'PENDIENTE'"></span>
                     </td>
                   </tr>
                 </template>
-                <tr x-show="datosPares.length === 0">
-                  <td colspan="12" class="p-8 text-center text-slate-500 italic">Esperando transacciones emparejadas en vista_pares...</td>
-                </tr>
               </tbody>
             </table>
           </div>
@@ -183,7 +169,7 @@
           </div>
         </div>
 
-        <!-- EDITOR DE FACTORES DINÁMICOS (MATRIZ ATENEA) -->
+        <!-- EDITOR DE FACTORES DINÁMICOS -->
         <div class="bg-[#111322] border border-[#262a42] rounded-xl p-5 shadow-xl space-y-4 font-sans" x-data="editorFactores()" x-init="cargarFactores()">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-[#262a42] pb-3">
             <div>
@@ -226,51 +212,53 @@
 
       </div>
 
-      <!-- VISTA REGISTROS INDIVIDUALES -->
-      <div x-show="tablaActiva === 'registros'" class="space-y-4">
+      <!-- VISTA IMÁGENES (COMPROBANTES TEST NAUPAR) -->
+      <div x-show="tablaActiva === 'imagenes'" class="space-y-4">
         <div class="bg-[#111322] border border-[#262a42] rounded-xl overflow-hidden shadow-xl">
+          <div class="p-3 border-b border-[#262a42] bg-[#16192b] flex justify-between items-center">
+            <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Histórico de Comprobantes NAUPAR (`comprobantes_test`)</span>
+            <span class="text-[10px] text-slate-500">Filtrado automático por Socio / Empresa NAUPAR</span>
+          </div>
+
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs">
               <thead class="bg-[#0b0d19] text-slate-400 uppercase tracking-wider font-semibold">
                 <tr>
-                  <th class="p-3">HASH</th>
-                  <th class="p-3">Fecha / Hora</th>
+                  <th class="p-3">ID</th>
+                  <th class="p-3">Fecha</th>
+                  <th class="p-3">Socio / Empresa</th>
                   <th class="p-3">Asesor</th>
-                  <th class="p-3">Tipo</th>
                   <th class="p-3">Titular</th>
                   <th class="p-3">Monto</th>
                   <th class="p-3">Moneda</th>
-                  <th class="p-3">Banco</th>
-                  <th class="p-3">Comprobante</th>
-                  <th class="p-3">Estado</th>
+                  <th class="p-3">Imagen / Adjunto</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-[#262a42] font-medium text-slate-300">
-                <template x-for="r in remesas" :key="r.id">
+                <template x-for="img in imagenes" :key="img.id">
                   <tr class="hover:bg-[#16192b] transition-colors">
-                    <td class="p-3 font-mono text-amber-400 font-bold" x-text="'#' + r.hash_corto"></td>
-                    <td class="p-3 text-slate-400 font-mono" x-text="new Date(r.fecha_hora || r.created_at).toLocaleString()"></td>
-                    <td class="p-3 font-semibold text-white" x-text="r.nombre_asesor"></td>
+                    <td class="p-3 font-mono text-amber-400 font-bold" x-text="'#' + img.id"></td>
+                    <td class="p-3 text-slate-400 font-mono" x-text="new Date(img.created_at || img.fecha).toLocaleString()"></td>
+                    <td class="p-3 font-bold text-emerald-400" x-text="img.socio || img.empresa || 'NAUPAR'"></td>
+                    <td class="p-3 text-white" x-text="img.asesor || 'N/A'"></td>
+                    <td class="p-3" x-text="img.titular || img.nombre_titular || 'N/A'"></td>
+                    <td class="p-3 font-bold text-white" x-text="Number(img.monto || 0).toFixed(2)"></td>
+                    <td class="p-3 font-bold" x-text="img.moneda || 'USD'"></td>
                     <td class="p-3">
-                      <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase" :class="String(r.tipo_operacion).toLowerCase().includes('ingreso') || String(r.tipo_operacion).toLowerCase().includes('deposito') ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-rose-950 text-rose-300 border border-rose-800'" x-text="r.tipo_operacion || 'ENVIO'"></span>
-                    </td>
-                    <td class="p-3" x-text="r.titular || 'N/A'"></td>
-                    <td class="p-3 font-bold text-white" x-text="Number(r.monto).toFixed(2)"></td>
-                    <td class="p-3 font-bold" x-text="r.moneda"></td>
-                    <td class="p-3 text-slate-400" x-text="r.banco || 'N/A'"></td>
-                    <td class="p-3">
-                      <template x-if="r.hiperlink">
-                        <a :href="r.hiperlink" target="_blank" class="text-amber-400 hover:underline font-mono">Ver R2 ↗</a>
+                      <template x-if="img.hiperlink || img.url_comprobante || img.url">
+                        <a :href="img.hiperlink || img.url_comprobante || img.url" target="_blank" class="inline-flex items-center gap-1 text-amber-400 hover:text-amber-300 font-bold bg-amber-950/40 border border-amber-800/60 px-2 py-1 rounded text-[11px]">
+                          🖼️ Abrir Imagen ↗
+                        </a>
                       </template>
-                      <template x-if="!r.hiperlink">
-                        <span class="text-slate-600 italic">Sin adjunto</span>
+                      <template x-if="!(img.hiperlink || img.url_comprobante || img.url)">
+                        <span class="text-slate-600 italic">Sin imagen</span>
                       </template>
-                    </td>
-                    <td class="p-3">
-                      <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800" x-text="r.estado_proceso || 'PENDIENTE'"></span>
                     </td>
                   </tr>
                 </template>
+                <tr x-show="imagenes.length === 0">
+                  <td colspan="8" class="p-8 text-center text-slate-500 italic">No se encontraron registros de NAUPAR en la tabla comprobantes_test...</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -405,27 +393,19 @@
 
     function dashboardApp() {
       return {
-        tablaActiva: 'vista_pares',
-        datosPares: [],
+        tablaActiva: 'registros',
         remesas: [],
+        imagenes: [],
         async init() {
-          await this.cargarTablaPares();
           await this.cargarRemesas();
+          await this.cargarImagenes();
           cargarTasasActivas();
         },
         async cambiarTabla(nombre) {
           this.tablaActiva = nombre;
-          if (nombre === 'vista_pares') await this.cargarTablaPares();
           if (nombre === 'registros') await this.cargarRemesas();
           if (nombre === 'cartelera_tasas') await cargarTasasActivas();
-        },
-        async cargarTablaPares() {
-          try {
-            const res = await fetch('/api/tabla/vista_pares');
-            if (res.ok) this.datosPares = await res.json();
-          } catch (e) {
-            console.error('Error al cargar vista_pares:', e);
-          }
+          if (nombre === 'imagenes') await this.cargarImagenes();
         },
         async cargarRemesas() {
           try {
@@ -433,6 +413,14 @@
             if (res.ok) this.remesas = await res.json();
           } catch (e) {
             console.error('Error al cargar remesas:', e);
+          }
+        },
+        async cargarImagenes() {
+          try {
+            const res = await fetch('/api/imagenes');
+            if (res.ok) this.imagenes = await res.json();
+          } catch (e) {
+            console.error('Error al cargar imagenes:', e);
           }
         }
       }
