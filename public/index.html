@@ -14,6 +14,8 @@
     [x-cloak] { display: none !important; }
     .table-scroll::-webkit-scrollbar { height: 6px; }
     .table-scroll::-webkit-scrollbar-thumb { background-color: #262a42; border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #334155; border-radius: 4px; }
     body { padding-bottom: env(safe-area-inset-bottom); }
   </style>
   <script>
@@ -32,7 +34,7 @@
 <body class="bg-brand-dark text-slate-200 font-sans antialiased min-h-screen flex flex-col md:flex-row" x-data="dashboardApp()" x-init="init()">
 
   <!-- SIDEBAR LATERAL (Solo Desktop) -->
-  <aside class="w-64 bg-[#111322] border-r border-[#262a42] p-4 flex-col justify-between shrink-0 hidden md:flex h-screen sticky top-0">
+  <aside class="w-64 bg-[#111322] border-r border-[#262a42] p-4 flex-col justify-between shrink-0 hidden md:flex h-screen sticky top-0 z-40">
     <div>
       <div class="px-3 py-2.5 mb-6 border border-[#262a42] bg-slate-100/95 rounded-xl shadow-lg flex items-center justify-center">
         <img src="/logo.png" alt="Inversiones NAUPAR" class="w-full max-h-14 object-contain">
@@ -122,7 +124,7 @@
                 <template x-for="r in remesas" :key="r.id">
                   <tr class="hover:bg-[#16192b] transition-colors">
                     <td class="p-3 font-mono text-amber-400 font-bold" x-text="'#' + (r.hash_corto || r.id)"></td>
-                    <td class="p-3 text-slate-400 font-mono" x-text="new Date(r.fecha_hora || r.created_at).toLocaleString()"></td>
+                    <td class="p-3 text-slate-400 font-mono" x-text="formatDate(r.fecha_hora || r.created_at)"></td>
                     <td class="p-3 font-semibold text-white" x-text="r.nombre_asesor"></td>
                     <td class="p-3">
                       <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase" :class="String(r.tipo_operacion).toLowerCase().includes('ingreso') || String(r.tipo_operacion).toLowerCase().includes('deposito') ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-rose-950 text-rose-300 border border-rose-800'" x-text="r.tipo_operacion || 'ENVIO'"></span>
@@ -158,24 +160,20 @@
             <p class="text-xs text-slate-400">Control de mercado y emisión oficial de tasas NAUPAR</p>
           </div>
           <div class="flex items-center gap-2 w-full sm:w-auto">
-            <!-- Botón Sincronizar movido aquí -->
             <button @click="init()" class="flex-1 sm:flex-none justify-center bg-amber-600 hover:bg-amber-500 text-white px-3 py-2 rounded-lg text-xs font-bold transition-all shadow flex items-center gap-1.5">
               <span>🔄</span> <span>Sincronizar</span>
             </button>
-            <!-- Botón de Tuerca para desplegar el modal de configuración -->
             <button @click="modalFactores = true" class="bg-[#16192b] hover:bg-slate-800 text-amber-400 border border-[#262a42] p-2 rounded-lg transition-all shadow" title="Configurar Factores">
               <span class="text-base">⚙️</span>
             </button>
           </div>
         </div>
 
-        <!-- Cuadro 1: Tasas Activas en Producción -->
         <div class="bg-[#111322] border border-[#262a42] rounded-xl p-3 md:p-5 shadow-xl space-y-4">
           <div class="flex flex-wrap justify-between items-center gap-2 border-b border-[#262a42] pb-3">
             <h2 class="text-[11px] md:text-xs font-bold text-slate-200 tracking-wider uppercase">Tasas Activas en Producción</h2>
             <div class="flex items-center gap-2">
               <span id="lbl-lote-activo" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] md:text-[11px] font-extrabold px-2.5 py-1 rounded-full">Lote Activo: T000</span>
-              <!-- Botón Reenviar colocado aquí -->
               <button onclick="reenviarTasaActual()" class="bg-amber-600/20 text-amber-400 border border-amber-500/40 text-[11px] md:text-xs font-bold px-3 py-1 rounded-lg hover:bg-amber-600/30 transition flex items-center gap-1">
                 🔄 Reenviar Tasa Actual
               </button>
@@ -184,14 +182,12 @@
           <div id="grid-tasas-activas" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2 md:gap-3"></div>
         </div>
 
-        <!-- Cuadro 2: Borrador Capturado -->
         <div class="bg-[#111322] border border-[#262a42] rounded-xl p-3 md:p-5 shadow-xl space-y-4">
           <div class="flex justify-between items-center border-b border-[#262a42] pb-3">
             <h2 class="text-[11px] md:text-xs font-bold text-slate-300 tracking-wider uppercase">Borrador Capturado (Paso Previo)</h2>
           </div>
           <div id="grid-tasas-borrador" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2 md:gap-3"></div>
           <div class="flex flex-wrap justify-end items-center gap-2 pt-2">
-            <!-- Botón Conectar colocado al lado del botón Publicar -->
             <button onclick="capturarBorradorHoo()" class="bg-indigo-600/20 text-indigo-300 border border-indigo-500/40 text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-indigo-600/30 transition flex items-center gap-1.5">
               ⚡ Conectar Hoo API
             </button>
@@ -200,70 +196,77 @@
             </button>
           </div>
         </div>
-
       </div>
 
-      <!-- VISTA IMÁGENES RAW -->
+      <!-- VISTA IMÁGENES RAW (CARDS GRID) -->
       <div x-show="tablaActiva === 'imagenes'" class="space-y-4 w-full" x-cloak>
-        <div class="bg-[#111322] border border-[#262a42] rounded-xl overflow-hidden shadow-xl w-full">
-          <div class="p-3 border-b border-[#262a42] bg-[#16192b] flex justify-between items-center">
-            <span class="text-[11px] md:text-xs font-bold text-amber-400 uppercase tracking-wider">Histórico RAW</span>
-            <span class="text-[9px] md:text-[10px] text-slate-500 font-mono hidden sm:block">PostgreSQL Automático</span>
+        <div class="bg-[#111322] border border-[#262a42] rounded-xl overflow-hidden shadow-xl p-4">
+          <div class="flex justify-between items-center border-b border-[#262a42] pb-3 mb-4">
+            <h2 class="text-[11px] md:text-xs font-bold text-amber-400 uppercase tracking-wider">Histórico RAW</h2>
+            <div class="flex gap-2">
+              <span class="text-[9px] md:text-[10px] text-slate-500 font-mono self-center">PostgreSQL Automático</span>
+              <button @click="init()" class="bg-[#16192b] hover:bg-slate-800 border border-[#262a42] text-white px-2 py-1 rounded text-xs transition">🔄</button>
+            </div>
           </div>
 
-          <div class="overflow-x-auto table-scroll w-full">
-            <table class="w-full text-left border-collapse text-xs min-w-[700px]">
-              <thead class="bg-[#0b0d19] text-slate-400 uppercase tracking-wider font-semibold">
-                <tr>
-                  <th class="p-3 whitespace-nowrap">Foto</th>
-                  <th class="p-3 whitespace-nowrap">Hash</th>
-                  <th class="p-3 whitespace-nowrap">Fecha</th>
-                  <th class="p-3 whitespace-nowrap">Remitente</th>
-                  <th class="p-3 whitespace-nowrap">JID Grupo</th>
-                  <th class="p-3 whitespace-nowrap">Caption</th>
-                  <th class="p-3 whitespace-nowrap">Enlace</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-[#262a42] font-medium text-slate-300">
-                <template x-for="img in imagenes" :key="img.id">
-                  <tr class="hover:bg-[#16192b] transition-colors">
-                    <td class="p-2 md:p-3">
-                      <template x-if="img.url">
-                        <a :href="img.url" target="_blank" class="block w-10 h-12 md:w-12 md:h-14">
-                          <img :src="img.url" class="w-full h-full object-cover rounded border border-slate-700 hover:scale-110 transition shadow" alt="R2" />
-                        </a>
-                      </template>
-                      <template x-if="!img.url">
-                        <div class="w-10 h-12 md:w-12 md:h-14 bg-slate-800 rounded flex items-center justify-center text-[9px] text-slate-500 font-mono">N/A</div>
-                      </template>
-                    </td>
+          <!-- GRID DE CARDS: 1 col móvil, 2 tablet, 4 lg, 5 xl -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            
+            <template x-for="img in imagenes" :key="img.id || Math.random()">
+              <div class="bg-[#16192b] border border-[#262a42] rounded-xl overflow-hidden shadow-lg hover:border-slate-500 transition-all flex flex-col group">
+                
+                <!-- PORTADA IMAGEN -->
+                <div class="h-44 w-full bg-[#0b0d19] relative">
+                  <template x-if="img.url">
+                    <a :href="img.url" target="_blank" class="block w-full h-full p-2">
+                      <img :src="img.url" class="w-full h-full object-contain rounded drop-shadow-md group-hover:scale-105 transition-transform duration-300" alt="Comprobante" />
+                    </a>
+                  </template>
+                  <template x-if="!img.url">
+                    <div class="w-full h-full flex flex-col items-center justify-center text-slate-600 font-mono text-xs">
+                      <span class="text-2xl mb-1">📄</span> Sin foto
+                    </div>
+                  </template>
 
-                    <td class="p-3 font-mono text-amber-400 font-bold text-[10px] md:text-[11px]" x-text="'#' + (img.hash || img.id)"></td>
-                    <td class="p-3 text-slate-400 font-mono text-[10px] md:text-[11px]" x-text="img.fecha ? new Date(img.fecha).toLocaleString() : 'Reciente'"></td>
+                  <!-- BADGE HASH -->
+                  <div class="absolute top-2 left-2 bg-black/80 backdrop-blur text-amber-400 font-mono text-[10px] font-bold px-2 py-1 rounded border border-slate-700/50 shadow-lg" x-text="'#' + (img.hash || img.id)"></div>
+                </div>
 
-                    <td class="p-3 font-bold text-emerald-400">
-                      <span x-text="img.remitente"></span>
-                      <span class="block text-[9px] md:text-[10px] text-cyan-400 font-mono font-normal" x-text="'Inst.' + img.instancia"></span>
-                    </td>
+                <!-- DETALLES CARD -->
+                <div class="p-3 flex-1 flex flex-col gap-2.5">
+                  <div class="flex justify-between items-start">
+                    <div class="text-[10px] text-slate-400 font-mono bg-slate-900/50 px-1.5 py-0.5 rounded" x-text="formatDate(img.fecha)"></div>
+                  </div>
 
-                    <td class="p-3 font-mono text-slate-400 text-[9px] md:text-[10px] truncate max-w-[100px]" x-text="img.remotejid"></td>
-                    <td class="p-3 text-white truncate max-w-[150px] md:max-w-[200px]" x-text="img.caption"></td>
+                  <div>
+                    <div class="font-bold text-emerald-400 text-[11px] uppercase truncate" x-text="img.remitente"></div>
+                    <div class="text-[9px] text-cyan-400 font-mono" x-text="'Instancia: ' + img.instancia"></div>
+                    <div class="text-[9px] text-slate-500 font-mono truncate mt-0.5" x-text="img.remotejid" :title="img.remotejid"></div>
+                  </div>
 
-                    <td class="p-3">
-                      <template x-if="img.url">
-                        <a :href="img.url" target="_blank" class="inline-flex items-center gap-1 text-amber-400 hover:text-amber-300 font-bold bg-amber-950/40 border border-amber-800/60 px-2 py-1.5 rounded text-[10px] transition whitespace-nowrap">
-                          Ver ↗
-                        </a>
-                      </template>
-                    </td>
-                  </tr>
-                </template>
+                  <!-- CAJA DE TEXTO (CAPTION) -->
+                  <div class="bg-[#0b0d19] border border-[#262a42] rounded p-2 text-[10px] text-slate-300 h-14 overflow-y-auto custom-scrollbar leading-tight font-mono" x-text="img.caption || 'Sin texto...'"></div>
 
-                <tr x-show="imagenes.length === 0">
-                  <td colspan="7" class="p-8 text-center text-slate-500 italic">Cargando registros RAW...</td>
-                </tr>
-              </tbody>
-            </table>
+                  <!-- ACCIÓN -->
+                  <div class="mt-auto pt-2">
+                    <template x-if="img.url">
+                      <a :href="img.url" target="_blank" class="w-full flex justify-center items-center gap-1.5 bg-amber-600/20 text-amber-400 border border-amber-500/40 hover:bg-amber-600/40 font-bold py-1.5 rounded text-[11px] transition">
+                        <span>🖼️</span> Ver Imagen Completa ↗
+                      </a>
+                    </template>
+                  </div>
+                </div>
+
+              </div>
+            </template>
+
+            <!-- ESTADO VACÍO -->
+            <template x-if="imagenes.length === 0">
+              <div class="col-span-full py-12 text-center text-slate-500 italic bg-[#16192b] border border-dashed border-[#262a42] rounded-xl">
+                Cargando comprobantes RAW o base de datos vacía...
+              </div>
+            </template>
+
           </div>
         </div>
       </div>
@@ -323,7 +326,7 @@
 
         <div class="flex justify-end gap-2 pt-2 border-t border-[#262a42]">
           <button @click="modalFactores = false" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-lg transition">
-            Cancelar
+            Cerrar
           </button>
           <button @click="guardarFactores()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs px-4 py-2 rounded-lg shadow transition flex items-center gap-2">
             💾 Guardar Factores (<span x-text="origenActivo"></span>)
@@ -453,6 +456,19 @@
         modalFactores: false,
         remesas: [],
         imagenes: [],
+        
+        // Formateador robusto para manejar timestamps de 10 dígitos o strings
+        formatDate(val) {
+          if (!val) return 'Desconocida';
+          let num = Number(val);
+          if (!isNaN(num)) {
+            if (num < 10000000000) num *= 1000; // Convierte de segundos a milisegundos si aplica
+            return new Date(num).toLocaleString();
+          }
+          let d = new Date(val);
+          return isNaN(d.getTime()) ? 'Fecha Inválida' : d.toLocaleString();
+        },
+
         async init() {
           await this.cargarRemesas();
           await this.cargarImagenes();
