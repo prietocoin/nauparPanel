@@ -45,9 +45,14 @@ router.get('/imagenes', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT * FROM registros_raw 
-      WHERE LOWER(COALESCE(socio, empresa, '')) LIKE '%naupar%'
-         OR LOWER(COALESCE(asesor, '')) LIKE '%naupar%'
-      ORDER BY id DESC;
+      WHERE LOWER(COALESCE(socio::text, '')) LIKE '%naupar%'
+         OR LOWER(COALESCE(empresa::text, '')) LIKE '%naupar%'
+         OR LOWER(COALESCE(asesor::text, '')) LIKE '%naupar%'
+         OR LOWER(COALESCE(remitente::text, '')) LIKE '%naupar%'
+         OR LOWER(COALESCE(pushname::text, '')) LIKE '%naupar%'
+         OR LOWER(COALESCE(instancia::text, '')) LIKE '%kleudis%'
+         OR LOWER(COALESCE(instancia::text, '')) LIKE '%naupar%'
+      ORDER BY id DESC LIMIT 100;
     `);
     res.json(result.rows);
   } catch (err) {
