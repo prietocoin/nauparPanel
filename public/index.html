@@ -212,11 +212,11 @@
 
       </div>
 
-      <!-- VISTA IMÁGENES (COMPROBANTES TEST NAUPAR) -->
+      <!-- VISTA IMÁGENES (REGISTROS RAW NAUPAR) -->
       <div x-show="tablaActiva === 'imagenes'" class="space-y-4">
         <div class="bg-[#111322] border border-[#262a42] rounded-xl overflow-hidden shadow-xl">
           <div class="p-3 border-b border-[#262a42] bg-[#16192b] flex justify-between items-center">
-            <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Histórico de Comprobantes NAUPAR (`comprobantes_test`)</span>
+            <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Histórico de Comprobantes NAUPAR (`registros_raw`)</span>
             <span class="text-[10px] text-slate-500">Filtrado automático por Socio / Empresa NAUPAR</span>
           </div>
 
@@ -238,9 +238,9 @@
                 <template x-for="img in imagenes" :key="img.id">
                   <tr class="hover:bg-[#16192b] transition-colors">
                     <td class="p-3 font-mono text-amber-400 font-bold" x-text="'#' + img.id"></td>
-                    <td class="p-3 text-slate-400 font-mono" x-text="new Date(img.created_at || img.fecha).toLocaleString()"></td>
+                    <td class="p-3 text-slate-400 font-mono" x-text="new Date(img.created_at || img.fecha || img.fecha_hora).toLocaleString()"></td>
                     <td class="p-3 font-bold text-emerald-400" x-text="img.socio || img.empresa || 'NAUPAR'"></td>
-                    <td class="p-3 text-white" x-text="img.asesor || 'N/A'"></td>
+                    <td class="p-3 text-white" x-text="img.asesor || img.nombre_asesor || 'N/A'"></td>
                     <td class="p-3" x-text="img.titular || img.nombre_titular || 'N/A'"></td>
                     <td class="p-3 font-bold text-white" x-text="Number(img.monto || 0).toFixed(2)"></td>
                     <td class="p-3 font-bold" x-text="img.moneda || 'USD'"></td>
@@ -257,7 +257,7 @@
                   </tr>
                 </template>
                 <tr x-show="imagenes.length === 0">
-                  <td colspan="8" class="p-8 text-center text-slate-500 italic">No se encontraron registros de NAUPAR en la tabla comprobantes_test...</td>
+                  <td colspan="8" class="p-8 text-center text-slate-500 italic">No se encontraron registros de NAUPAR en la tabla registros_raw...</td>
                 </tr>
               </tbody>
             </table>
