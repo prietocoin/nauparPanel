@@ -24,6 +24,54 @@
     }
   </script>
 </head>
+  <tbody class="divide-y divide-[#262a42] font-medium text-slate-300">
+  <template x-for="img in imagenes" :key="img.id">
+    <tr class="hover:bg-[#16192b] transition-colors">
+      <!-- Miniatura -->
+      <td class="p-3">
+        <template x-if="img.url">
+          <a :href="img.url" target="_blank">
+            <img :src="img.url" class="w-10 h-12 object-cover rounded border border-slate-700 hover:scale-110 transition shadow" alt="R2" />
+          </a>
+        </template>
+        <template x-if="!img.url">
+          <div class="w-10 h-12 bg-slate-800 rounded flex items-center justify-center text-[9px] text-slate-500 font-mono">Sin foto</div>
+        </template>
+      </td>
+
+      <!-- Hash corto -->
+      <td class="p-3 font-mono text-amber-400 font-bold text-[11px]" x-text="'#' + (img.hash || img.id)"></td>
+
+      <!-- Timestamp -->
+      <td class="p-3 text-slate-400 font-mono text-[11px]" x-text="img.fecha ? new Date(img.fecha).toLocaleString() : 'Reciente'"></td>
+
+      <!-- Remitente / Push Name & Instancia -->
+      <td class="p-3 font-bold text-emerald-400">
+        <span x-text="img.remitente"></span>
+        <span class="block text-[10px] text-cyan-400 font-mono font-normal" x-text="'Instancia: ' + img.instancia"></span>
+      </td>
+
+      <!-- Grupo Raw -->
+      <td class="p-3 font-mono text-slate-400 text-[11px]" x-text="img.remotejid"></td>
+
+      <!-- Caption -->
+      <td class="p-3 text-white truncate max-w-[200px]" x-text="img.caption"></td>
+
+      <!-- Botón de apertura -->
+      <td class="p-3">
+        <template x-if="img.url">
+          <a :href="img.url" target="_blank" class="inline-flex items-center gap-1 text-amber-400 hover:text-amber-300 font-bold bg-amber-950/40 border border-amber-800/60 px-2 py-1 rounded text-[11px] transition">
+            🖼️ Ver R2 ↗
+          </a>
+        </template>
+      </td>
+    </tr>
+  </template>
+
+  <tr x-show="imagenes.length === 0">
+    <td colspan="7" class="p-8 text-center text-slate-500 italic">No se encontraron registros de la instancia Kleudis en registros_raw...</td>
+  </tr>
+</tbody>
 <body class="bg-brand-dark text-slate-200 font-sans antialiased min-h-screen flex" x-data="dashboardApp()" x-init="init()">
 
   <!-- Sidebar Lateral -->
