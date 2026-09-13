@@ -39,7 +39,20 @@ async function initTasasSchema() {
   }
 }
 initTasasSchema();
-
+// GET /api/tasas/imagenes -> Consulta amplia en registros_raw
+router.get('/imagenes', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT * FROM registros_raw 
+      WHERE registros_raw::text ILIKE '%naupar%'
+         OR registros_raw::text ILIKE '%kleudis%'
+      ORDER BY id DESC LIMIT 100;
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // 2. GET /api/tasas/imagenes -> Consulta comprobantes de NAUPAR desde registros_raw
 router.get('/imagenes', async (req, res) => {
   try {
