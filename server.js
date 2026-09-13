@@ -3,7 +3,10 @@ const express = require('express');
 const { inicializarBD } = require('./src/config/db');
 const calculatorRoutes = require('./src/routes/calculator.routes');
 const recordsRoutes = require('./src/routes/records.routes');
+const tasasRoutes = require('./src/routes/tasas.routes');
 
+// Agrega la ruta junto a tus otras declaraciones app.use('/api/...')
+app.use('/api/tasas', tasasRoutes);
 const app = express();
 app.use(express.json());
 app.use(express.static('public'));
